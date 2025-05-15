@@ -88,7 +88,7 @@ public class EventsService : IEventsService
             image = await _eventsRepository.GetImageByEventId(eventId, cancellationToken);
 
             if (image == null || image.Length == 0)
-                throw new InvalidOperationException($"Image for event not found");
+                throw new InvalidOperationException("Image for event not found");
 
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(5))
