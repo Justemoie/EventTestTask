@@ -10,5 +10,5 @@ public record EventRequest(
     string Location,
     EventCategory Category,
     int MaxParticipants,
-    byte[]? Image
+    byte[] Image
 );

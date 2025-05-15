@@ -16,6 +16,8 @@ builder.Services.AddServices();
 builder.Services.AddValidators();
 builder.Services.AddRepositories();
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
