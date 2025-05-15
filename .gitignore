@@ -1,0 +1,13 @@
+EventTestTask.Api/bin
+EventTestTask.Api/obj
+EventTestTask.Core/bin
+EventTestTask.Core/obj
+EventTestTask.Tests/bin
+EventTestTask.Tests/obj
+EventTestTask.Application/bin
+EventTestTask.Application/obj
+EventTestTask.Infrastructure/bin
+EventTestTask.Infrastructure/obj
+.idea
+.DS_Store
+Test.sln.DotSettings.user
