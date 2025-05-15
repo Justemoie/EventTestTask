@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTestTask.Api", "EventTestTask.Api\EventTestTask.Api.csproj", "{420441AE-AFDC-49A7-84FE-A38044A20409}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{B88B05C2-FC86-4CE4-B40D-8F387CABB47C}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		ReadMe.md = ReadMe.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTestTask.Core", "EventTestTask.Core\EventTestTask.Core.csproj", "{5B4D9443-48A8-4DB0-8CEB-FDD23D69A027}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTestTask.Infrastructure", "EventTestTask.Infrastructure\EventTestTask.Infrastructure.csproj", "{C5CBFD21-91A4-49B4-8B91-444379E984E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTestTask.Application", "EventTestTask.Application\EventTestTask.Application.csproj", "{5B84B68A-59F8-48BA-A773-66626BA487EB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{420441AE-AFDC-49A7-84FE-A38044A20409}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{420441AE-AFDC-49A7-84FE-A38044A20409}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{420441AE-AFDC-49A7-84FE-A38044A20409}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{420441AE-AFDC-49A7-84FE-A38044A20409}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B4D9443-48A8-4DB0-8CEB-FDD23D69A027}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B4D9443-48A8-4DB0-8CEB-FDD23D69A027}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B4D9443-48A8-4DB0-8CEB-FDD23D69A027}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B4D9443-48A8-4DB0-8CEB-FDD23D69A027}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5CBFD21-91A4-49B4-8B91-444379E984E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5CBFD21-91A4-49B4-8B91-444379E984E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5CBFD21-91A4-49B4-8B91-444379E984E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5CBFD21-91A4-49B4-8B91-444379E984E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B84B68A-59F8-48BA-A773-66626BA487EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B84B68A-59F8-48BA-A773-66626BA487EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B84B68A-59F8-48BA-A773-66626BA487EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B84B68A-59F8-48BA-A773-66626BA487EB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
