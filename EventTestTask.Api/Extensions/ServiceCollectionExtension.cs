@@ -16,8 +16,10 @@ public static class ServiceCollectionExtension
 
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
+        services.AddScoped<IUsersService, UsersService>();
         services.AddScoped<IEventsService, EventsService>();
-
+        services.AddScoped<IRegistrationsService, RegistartionsService>();
+        
         return services;
     }
 
@@ -27,8 +29,10 @@ public static class ServiceCollectionExtension
 
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
+        services.AddScoped<IUsersRepository, UsersRepository>();
         services.AddScoped<IEventsRepository, EventsRepository>();
-
+        services.AddScoped<IRegistrationsRepository, RegistrationsRepository>();
+        
         return services;
     }
 
@@ -40,7 +44,8 @@ public static class ServiceCollectionExtension
     {
         services.AddAutoMapper(
             typeof(UserProfile).Assembly,
-            typeof(EventProfile).Assembly);
+            typeof(EventProfile).Assembly,
+            typeof(RegistrationProfile).Assembly);
 
         return services;
     }

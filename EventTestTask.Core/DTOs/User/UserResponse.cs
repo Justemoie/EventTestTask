@@ -1,4 +1,4 @@
-using EventTestTask.Core.DTOs.Event;
+using EventTestTask.Core.DTOs.Registration;
 
 namespace EventTestTask.Core.DTOs.User;
 
@@ -8,5 +8,5 @@ public record UserResponse(
     string LastName,
     DateTime BirthDate,
     string Email,
-    List<EventResponse> Events
+    List<RegistrationResponse> Events
 );

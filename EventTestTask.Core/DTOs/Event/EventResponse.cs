@@ -1,4 +1,4 @@
-using EventTestTask.Core.DTOs.User;
+using EventTestTask.Core.DTOs.Registration;
 using EventTestTask.Core.Enums;
 
 namespace EventTestTask.Core.DTOs.Event;
@@ -13,5 +13,5 @@ public record EventResponse(
     EventCategory Category,
     int MaxParticipants,
     byte[] Image,
-    List<UserResponse> Participants
+    List<RegistrationResponse> Participants
 );
