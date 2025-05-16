@@ -24,8 +24,8 @@ public class EventProfile : Profile
 
         CreateMap<Event, EventRequest>();
 
-       CreateMap<EventResponse, Event>().ReverseMap();
+        CreateMap<EventResponse, Event>().ReverseMap();
 
-       CreateMap<PageResult<Event>, PageResult<EventResponse>>().ReverseMap();
+        CreateMap<PageResult<Event>, PageResult<EventResponse>>().ReverseMap();
     }
 }

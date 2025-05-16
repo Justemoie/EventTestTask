@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EventTestTask.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/events")]
 public class EventsController : ControllerBase
 {
     private readonly IEventsService _eventsService;
@@ -17,7 +17,7 @@ public class EventsController : ControllerBase
         _eventsService = eventsService;
     }
 
-    [HttpGet("/events")]
+    [HttpGet("all")]
     public async Task<ActionResult<PageResult<EventResponse>>> GetAll(
         [AsParameters] [FromQuery] PageParams pageParams,
         CancellationToken cancellationToken)
@@ -27,7 +27,7 @@ public class EventsController : ControllerBase
         return Ok(events);
     }
 
-    [HttpGet("/events/{eventId:guid}")]
+    [HttpGet("{eventId:guid}")]
     public async Task<ActionResult<EventResponse>> GetById([FromRoute] Guid eventId,
         CancellationToken cancellationToken)
     {
@@ -36,7 +36,7 @@ public class EventsController : ControllerBase
         return Ok(@event);
     }
 
-    [HttpGet("/events-by-title")]
+    [HttpGet("by-title")]
     public async Task<ActionResult<EventResponse>> GetByTitle([FromQuery] string title,
         CancellationToken cancellationToken)
     {
@@ -45,7 +45,7 @@ public class EventsController : ControllerBase
         return Ok(@event);
     }
 
-    [HttpPost("/events")]
+    [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] EventRequest eventRequest,
         CancellationToken cancellationToken)
     {
@@ -54,7 +54,7 @@ public class EventsController : ControllerBase
         return Ok();
     }
 
-    [HttpPut("/events/{eventId:guid}")]
+    [HttpPut("update/{eventId:guid}")]
     public async Task<IActionResult> Update([FromRoute] Guid eventId,
         [FromBody] EventRequest eventRequest,
         CancellationToken cancellationToken)
@@ -64,7 +64,7 @@ public class EventsController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("/events/{eventId:guid}")]
+    [HttpDelete("delete/{eventId:guid}")]
     public async Task<ActionResult<Guid>> Delete([FromRoute] Guid eventId, CancellationToken cancellationToken)
     {
         var id = await _eventsService.DeleteEvent(eventId, cancellationToken);
@@ -72,10 +72,10 @@ public class EventsController : ControllerBase
         return Ok(id);
     }
 
-    [HttpGet("/search/events")]
+    [HttpGet("search")]
     public async Task<ActionResult<PageResult<EventResponse>>> Search(
-        [AsParameters] [FromQuery] PageParams pageParams,
-        [AsParameters] [FromQuery] EventFilter filter,
+        [FromQuery] PageParams pageParams,
+        [FromQuery] EventFilter filter,
         CancellationToken cancellationToken)
     {
         var events = await _eventsService.SearchEvents(pageParams, filter, cancellationToken);
@@ -83,7 +83,7 @@ public class EventsController : ControllerBase
         return Ok(events);
     }
 
-    [HttpGet("/events/image/{eventId:guid}")]
+    [HttpGet("image/{eventId:guid}")]
     public async Task<ActionResult<byte[]>> GetImageByEventId([FromRoute] Guid eventId,
         CancellationToken cancellationToken)
     {
@@ -92,7 +92,7 @@ public class EventsController : ControllerBase
         return Ok(image);
     }
 
-    [HttpPatch("/events/image-update/{eventId:guid}")]
+    [HttpPatch("image-update/{eventId:guid}")]
     public async Task<IActionResult> UploadImage([FromRoute] Guid eventId, byte[] image,
         CancellationToken cancellationToken)
     {

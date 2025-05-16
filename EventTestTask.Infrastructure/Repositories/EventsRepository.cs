@@ -17,7 +17,7 @@ public class EventsRepository : IEventsRepository
         _context = context;
     }
 
-    public async Task<PageResult<Event>> GetEvents(PageParams pageParams, CancellationToken cancellationToken)
+    public async Task<PageResult<Event>> GetEventsAsync(PageParams pageParams, CancellationToken cancellationToken)
     {
         var query = _context.Events.AsQueryable();
 
@@ -26,7 +26,7 @@ public class EventsRepository : IEventsRepository
         return events;
     }
 
-    public async Task<Event> GetEventById(Guid eventId, CancellationToken cancellationToken)
+    public async Task<Event> GetEventByIdAsync(Guid eventId, CancellationToken cancellationToken)
     {
         var @event = await _context.Events
             .AsNoTracking()
@@ -38,7 +38,7 @@ public class EventsRepository : IEventsRepository
         return @event;
     }
 
-    public async Task<Event> GetEventByTitle(string title, CancellationToken cancellationToken)
+    public async Task<Event> GetEventByTitleAsync(string title, CancellationToken cancellationToken)
     {
         var @event = await _context.Events
             .AsNoTracking()
@@ -50,7 +50,7 @@ public class EventsRepository : IEventsRepository
         return @event;
     }
 
-    public async Task CreateEvent(Event @event, CancellationToken cancellationToken)
+    public async Task CreateEventAsync(Event @event, CancellationToken cancellationToken)
     {
         var newEvent = new Event(
             Guid.NewGuid(),
@@ -68,9 +68,10 @@ public class EventsRepository : IEventsRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateEvent(Guid eventId, Event @event, CancellationToken cancellationToken)
+    public async Task UpdateEventAsync(Guid eventId, Event @event, CancellationToken cancellationToken)
     {
-        await _context.Events.Where(e => e.Id == eventId)
+        await _context.Events
+            .Where(e => e.Id == eventId)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(e => e.Title, @event.Title)
                 .SetProperty(e => e.Description, @event.Description)
@@ -82,7 +83,7 @@ public class EventsRepository : IEventsRepository
                 .SetProperty(e => e.Image, @event.Image), cancellationToken);
     }
 
-    public async Task<Guid> DeleteEvent(Guid eventId, CancellationToken cancellationToken)
+    public async Task<Guid> DeleteEventAsync(Guid eventId, CancellationToken cancellationToken)
     {
         var eventToDelete = await _context.Events
             .FindAsync(eventId, cancellationToken);
@@ -96,7 +97,7 @@ public class EventsRepository : IEventsRepository
         return eventToDelete.Id;
     }
 
-    public async Task<PageResult<Event>> SearchEvents(
+    public async Task<PageResult<Event>> SearchEventsAsync(
         PageParams pageParams,
         EventFilter filter,
         CancellationToken cancellationToken)
@@ -111,7 +112,7 @@ public class EventsRepository : IEventsRepository
         return events;
     }
 
-    public async Task UploadEventImage(Guid eventId, byte[] image, CancellationToken cancellationToken)
+    public async Task UploadEventImageAsync(Guid eventId, byte[] image, CancellationToken cancellationToken)
     {
         await _context.Events
             .Where(x => x.Id == eventId)
@@ -119,7 +120,7 @@ public class EventsRepository : IEventsRepository
                 .SetProperty(e => e.Image, image), cancellationToken);
     }
 
-    public async Task<byte[]> GetImageByEventId(Guid eventId, CancellationToken cancellationToken)
+    public async Task<byte[]> GetImageByEventIdAsync(Guid eventId, CancellationToken cancellationToken)
     {
         var @event = await _context.Events
             .AsNoTracking()
