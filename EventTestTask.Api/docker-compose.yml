@@ -1,0 +1,33 @@
+services:
+  EventTestTask:
+    image: test_task_modsen
+    ports:
+      - "8080:8080"
+    container_name: events_test_task
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+        
+  postgres:
+    image: postgres:latest
+    ports: 
+      - "5433:5432"
+    container_name: db_postgres_events
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: EventTestTaskDb
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 30s
+      retries: 3
+      timeout: 20s
+      start_period: 10s
+        
+volumes:
+  db_data:
+          

@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+*.suo
+*.sln
+Dockerfile*
+docker-compose*
+node_modules/
+.git/
+.gitignore
