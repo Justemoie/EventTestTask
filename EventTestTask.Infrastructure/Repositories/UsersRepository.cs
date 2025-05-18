@@ -46,7 +46,9 @@ public class UsersRepository : IUsersRepository
             user.FirstName,
             user.LastName,
             user.BirthDate,
-            user.Email
+            user.Email,
+            user.PasswordHash,
+            user.Role
         );
 
         await _context.Users.AddAsync(newUser, cancellationToken);

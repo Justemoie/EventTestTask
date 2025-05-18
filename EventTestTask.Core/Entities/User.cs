@@ -1,3 +1,5 @@
+using EventTestTask.Core.Enums;
+
 namespace EventTestTask.Core.Entities;
 
 public class User
@@ -14,12 +16,19 @@ public class User
 
     public string Email { get; private set; }
 
-    public User(Guid id, string firstName, string lastName, DateTime birthDate, string email)
+    public string PasswordHash { get; private set; }
+
+    public UserRole Role { get; private set; }
+
+    public User(Guid id, string firstName, string lastName, DateTime birthDate, string email, string passwordHash,
+        UserRole role)
     {
         Id = id;
         FirstName = firstName;
         LastName = lastName;
         BirthDate = birthDate;
         Email = email;
+        PasswordHash = passwordHash;
+        Role = role;
     }
 }

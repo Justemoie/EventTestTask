@@ -2,6 +2,7 @@ using EventTestTask.Core.DTOs.Event;
 using EventTestTask.Core.Interfaces.Services;
 using EventTestTask.Core.Models.Filters;
 using EventTestTask.Core.Models.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventTestTask.Api.Controllers;
@@ -46,6 +47,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpPost("create")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] EventRequest eventRequest,
         CancellationToken cancellationToken)
     {
@@ -55,6 +57,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpPut("update/{eventId:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update([FromRoute] Guid eventId,
         [FromBody] EventRequest eventRequest,
         CancellationToken cancellationToken)
@@ -65,6 +68,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpDelete("delete/{eventId:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Guid>> Delete([FromRoute] Guid eventId, CancellationToken cancellationToken)
     {
         var id = await _eventsService.DeleteEvent(eventId, cancellationToken);
@@ -84,6 +88,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("image/{eventId:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<byte[]>> GetImageByEventId([FromRoute] Guid eventId,
         CancellationToken cancellationToken)
     {
@@ -93,6 +98,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpPatch("image-update/{eventId:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UploadImage([FromRoute] Guid eventId, byte[] image,
         CancellationToken cancellationToken)
     {

@@ -8,5 +8,6 @@ public record UserResponse(
     string LastName,
     DateTime BirthDate,
     string Email,
-    List<RegistrationResponse> Events
+    List<RegistrationResponse> Events,
+    string PasswordHash
 );

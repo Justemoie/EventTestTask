@@ -1,5 +1,6 @@
 using System.Security.Authentication;
 using System.Text.Json;
+using BCrypt.Net;
 using Microsoft.AspNetCore.Http;
 
 namespace EventTestTask.Api.Middlewares;
@@ -31,7 +32,7 @@ public class GlobalExceptionHandlerMiddleware(
         catch (Exception _) when (_ is AuthenticationException)
         {
             logger.LogInformation("Authentication failed");
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized; 
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(JsonSerializer.Serialize(_.Message));
         }
@@ -69,6 +70,13 @@ public class GlobalExceptionHandlerMiddleware(
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(JsonSerializer.Serialize(_.Message));
+        }
+        catch (Exception _) when (_ is SaltParseException)
+        {
+            logger.LogInformation("Salt parse exception");
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize("Invalid password or Email"));
         }
         catch (Exception ex)
         {

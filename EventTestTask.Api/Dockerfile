@@ -14,7 +14,7 @@ RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-EXPOSE 8082
+EXPOSE 8080
 
 COPY --from=publish /app/publish .
 

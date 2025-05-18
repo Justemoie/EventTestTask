@@ -2,6 +2,7 @@ using EventTestTask.Api.Extensions;
 using EventTestTask.Api.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using EventTestTask.Infrastructure.ApplicationContext;
+using Microsoft.AspNetCore.CookiePolicy;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.AddMappings();
 builder.Services.AddServices();
 builder.Services.AddValidators();
 builder.Services.AddRepositories();
+builder.Services.AddApiAuthentication(builder.Configuration);
+builder.Services.AddApiAuthorization(builder.Configuration);
 
 builder.Services.AddMemoryCache();
 
@@ -39,6 +42,13 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.Strict,
+    HttpOnly = HttpOnlyPolicy.Always,
+    Secure = CookieSecurePolicy.SameAsRequest
+});
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 

@@ -4,5 +4,6 @@ public record UserRequest(
     string FirstName,
     string LastName,
     DateTime BirthDate,
-    string Email
+    string Email,
+    string PasswordHash
 );

@@ -1,5 +1,6 @@
 using EventTestTask.Core.DTOs.User;
 using EventTestTask.Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventTestTask.Api.Controllers;
@@ -16,6 +17,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("{userId:guid}")]
+    [Authorize]
     public async Task<ActionResult<UserResponse>> GetUserById([FromRoute] Guid userId,
         CancellationToken cancellationToken)
     {
@@ -25,6 +27,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("/email")]
+    [Authorize]
     public async Task<ActionResult<UserResponse>> GetByEmail([FromQuery] string email,
         CancellationToken cancellationToken)
     {
@@ -33,19 +36,12 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
-    [HttpPost("/register")]
-    public async Task<ActionResult> CreateUser([FromBody] UserRequest user, CancellationToken cancellationToken)
-    {
-        await _usersService.CreateUser(user, cancellationToken);
-
-        return Ok();
-    }
-
     [HttpPut("/update/{userId:guid}")]
-    public async Task<ActionResult> UpdateUser([FromRoute] Guid userId, [FromBody] UserRequest user,
+    [Authorize]
+    public async Task<ActionResult> UpdateUser([FromRoute] Guid userId, [FromBody] UserRequest userRequest,
         CancellationToken cancellationToken)
     {
-        await _usersService.UpdateUser(userId, user, cancellationToken);
+        await _usersService.UpdateUser(userId, userRequest, cancellationToken);
         
         return Ok();
     }
