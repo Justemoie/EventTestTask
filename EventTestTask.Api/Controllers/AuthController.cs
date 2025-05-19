@@ -41,6 +41,8 @@ public class AuthController : ControllerBase
         if (context is null)
             return BadRequest();
         
+        Console.WriteLine($"[Login] Protocol: {context.Request.Scheme}");
+        
         var token = await _usersService.Login(request.Email, request.Password, cancellationToken);
         
         context.Response.Cookies.Append("_at", token.AccessToken);
@@ -63,13 +65,13 @@ public class AuthController : ControllerBase
         Response.Cookies.Delete("_at", new CookieOptions
         {
             HttpOnly = true,
-            Secure = HttpContext.Request.IsHttps,
+            Secure = false,
             SameSite = SameSiteMode.Strict,
         });
         Response.Cookies.Delete("_rt", new CookieOptions
         {
             HttpOnly = true,
-            Secure = HttpContext.Request.IsHttps,
+            Secure = false,
             SameSite = SameSiteMode.Strict,
         });
         

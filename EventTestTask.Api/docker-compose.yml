@@ -9,10 +9,10 @@ services:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-        
+  
   postgres:
     image: postgres:latest
-    ports: 
+    ports:
       - "5433:5432"
     container_name: db_postgres_events
     environment:
@@ -27,7 +27,6 @@ services:
       retries: 3
       timeout: 20s
       start_period: 10s
-        
+
 volumes:
   db_data:
-          

@@ -76,7 +76,7 @@ public class GlobalExceptionHandlerMiddleware(
             logger.LogInformation("Salt parse exception");
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize("Invalid password or Email"));
+            await context.Response.WriteAsync(JsonSerializer.Serialize("Invalid password or email"));
         }
         catch (Exception ex)
         {
