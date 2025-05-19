@@ -14,7 +14,6 @@ To run the program you must enter the following commands:
 
 2. docker-compose -f ./EventTestTask.Api/docker-compose.yml up -d
 
-To test Api:  
-[Swagger UI](http://localhost:8080/swagger/index.html)
+To test Api: [Swagger UI](http://localhost:8080/swagger/index.html)
   
   
