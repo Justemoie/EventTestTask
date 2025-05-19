@@ -2,11 +2,11 @@
 
 Events System
 
-## 2. Tech Stack:
+## 1. Tech Stack:
 
 - net9.0, ASP.NET Core (Web API), C# 13.0, PostgreSQL, EF Core, Docker, Docker Compose, XUnit(AutoFixture, FluentAssertions, Moq), AutoMapper, FluentValidation, JWT Auth, Swagger, EF Fluent API
 
-# Way to run:
+## 2. Way to run:
 
 To run the program you must enter the following commands:
 
