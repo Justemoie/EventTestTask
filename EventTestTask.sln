@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTestTask.Infrastructur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTestTask.Application", "EventTestTask.Application\EventTestTask.Application.csproj", "{5B84B68A-59F8-48BA-A773-66626BA487EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTestTask.Tests", "EventTestTask.Tests\EventTestTask.Tests.csproj", "{EA863EDB-992C-4975-ADA5-12D7DB694941}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{5B84B68A-59F8-48BA-A773-66626BA487EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B84B68A-59F8-48BA-A773-66626BA487EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B84B68A-59F8-48BA-A773-66626BA487EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA863EDB-992C-4975-ADA5-12D7DB694941}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA863EDB-992C-4975-ADA5-12D7DB694941}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA863EDB-992C-4975-ADA5-12D7DB694941}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA863EDB-992C-4975-ADA5-12D7DB694941}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

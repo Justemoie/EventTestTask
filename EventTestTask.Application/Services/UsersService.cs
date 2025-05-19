@@ -43,7 +43,10 @@ public class UsersService : IUsersService
 
     public async Task Register(RegisterUser user, CancellationToken cancellationToken)
     {
-        await _userValidator.ValidateAndThrowAsync(_mapper.Map<UserRequest>(user), cancellationToken);
+        var validationResult = await _userValidator.ValidateAsync(_mapper.Map<UserRequest>(user), cancellationToken);
+
+        if (!validationResult.IsValid)
+            throw new ValidationException(validationResult.Errors);
 
         var hashedPassword = _passwordHasher.GenerateHash(user.Password);
 
@@ -72,9 +75,9 @@ public class UsersService : IUsersService
 
         var isValid = _passwordHasher.VerifyHash(password, user.PasswordHash);
 
-        if(!isValid)
+        if (!isValid)
             throw new AuthenticationException("Invalid Email or password");
-        
+
         var token = await _jwtTokensService.GenerateTokens(user, cancellationToken);
 
         return token;
