@@ -11,3 +11,5 @@ EventTestTask.Infrastructure/obj
 .idea
 .DS_Store
 Test.sln.DotSettings.user
+EventTestTask/Infrastructure/obj/
+EventTestTask.sln.DotSettings.user
