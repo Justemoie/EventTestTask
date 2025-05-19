@@ -2,7 +2,6 @@ using EventTestTask.Core.DTOs.Jwt;
 using EventTestTask.Core.DTOs.User;
 using EventTestTask.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventTestTask.Api.Controllers;
@@ -36,17 +35,10 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginUser request,
         CancellationToken cancellationToken)
     {
-        var context = _httpContextAccessor.HttpContext;
-        
-        if (context is null)
-            return BadRequest();
-        
-        Console.WriteLine($"[Login] Protocol: {context.Request.Scheme}");
-        
         var token = await _usersService.Login(request.Email, request.Password, cancellationToken);
         
-        context.Response.Cookies.Append("_at", token.AccessToken);
-        context.Response.Cookies.Append("_rt", token.RefreshToken);
+        Response.Cookies.Append("_at", token.AccessToken);
+        Response.Cookies.Append("_rt", token.RefreshToken);
         
         return Ok(token);
     }
@@ -62,18 +54,8 @@ public class AuthController : ControllerBase
         
         await _usersService.Logout(refreshToken, cancellationToken);
         
-        Response.Cookies.Delete("_at", new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = false,
-            SameSite = SameSiteMode.Strict,
-        });
-        Response.Cookies.Delete("_rt", new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = false,
-            SameSite = SameSiteMode.Strict,
-        });
+        Response.Cookies.Delete("_at");
+        Response.Cookies.Delete("_rt");
         
         return Ok(new { message = "Successfully logged out" });
     }
@@ -89,8 +71,8 @@ public class AuthController : ControllerBase
         
         var token = await _tokensService.UpdateTokens(context, cancellationToken);
         
-        context.Response.Cookies.Append("_at", token.AccessToken);
-        context.Response.Cookies.Append("_rt", token.RefreshToken);
+        Response.Cookies.Append("_at", token.AccessToken);
+        Response.Cookies.Append("_rt", token.RefreshToken);
 
         return Ok();
     }

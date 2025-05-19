@@ -85,16 +85,11 @@ public class EventsRepository : IEventsRepository
 
     public async Task<Guid> DeleteEventAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        var eventToDelete = await _context.Events
-            .FindAsync(eventId, cancellationToken);
+        await _context.Events
+            .Where(e => e.Id == eventId)
+            .ExecuteDeleteAsync(cancellationToken);
 
-        if (eventToDelete is null)
-            throw new KeyNotFoundException("Event not found");
-
-        _context.Events.Remove(eventToDelete);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return eventToDelete.Id;
+        return eventId;
     }
 
     public async Task<PageResult<Event>> SearchEventsAsync(

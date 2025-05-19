@@ -55,7 +55,7 @@ public class RegistrationsRepository : IRegistrationsRepository
         CancellationToken cancellationToken)
     {
         var query = _context.Registrations.AsQueryable();
-
+        
         var participants = await query
             .AsNoTracking()
             .Where(r => r.EventId == eventId)

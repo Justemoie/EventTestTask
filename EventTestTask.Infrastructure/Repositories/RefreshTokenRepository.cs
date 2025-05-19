@@ -67,14 +67,8 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
     public async Task DeleteByTokenAsync(string refreshToken, CancellationToken cancellationToken)
     {
-        var tokenToDelete = await _context.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == refreshToken, cancellationToken);
-
-        if (tokenToDelete is null)
-            throw new KeyNotFoundException("Token not found.");
-
-        _context.RefreshTokens.Remove(tokenToDelete);
-
-        await _context.SaveChangesAsync(cancellationToken);
+        await _context.RefreshTokens
+            .Where(rt => rt.Token == refreshToken)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

@@ -70,8 +70,11 @@ public class UsersService : IUsersService
     {
         var user = await _usersRepository.GetByEmailAsync(email, cancellationToken);
 
-        _passwordHasher.VerifyHash(password, user.PasswordHash);
+        var isValid = _passwordHasher.VerifyHash(password, user.PasswordHash);
 
+        if(!isValid)
+            throw new AuthenticationException("Invalid Email or password");
+        
         var token = await _jwtTokensService.GenerateTokens(user, cancellationToken);
 
         return token;
