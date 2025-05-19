@@ -2,24 +2,19 @@
 
 Events System
 
-## 1. Project Description:
-
-Web application for employee information management with the following CRUD operations:
-
-- Staff management:
-  - Get all the employees
-  - View detailed information about the employee
-  - Add a new employee
-  - Update an employee
-  - Delete an employee
-- Employee registration and authentication:
-  - Registration of new users
-  - Login for registered users
-- Searching and filtering of employees 
-  
 ## 2. Tech Stack:
-- Java 23
-- Spring Boot Web
-- Spring JPA
-- PostgreSQL
 
+- net9.0, ASP.NET Core (Web API), C# 13.0, PostgreSQL, EF Core, Docker, Docker Compose, XUnit(AutoFixture, FluentAssertions, Moq), AutoMapper, FluentValidation, JWT Auth, Swagger, EF Fluent API
+
+# Way to run:
+
+To run the program you must enter the following commands:
+
+1. cd EventTestTask
+
+2. docker-compose -f ./EventTestTask.Api/docker-compose.yml up -d
+
+To test Api:  
+[Swagger UI](http://localhost:8080/swagger/index.html)
+  
+  
