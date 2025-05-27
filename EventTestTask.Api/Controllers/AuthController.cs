@@ -1,5 +1,7 @@
+using AutoMapper;
 using EventTestTask.Core.DTOs.Jwt;
 using EventTestTask.Core.DTOs.User;
+using EventTestTask.Core.Entities;
 using EventTestTask.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,23 +13,22 @@ namespace EventTestTask.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IJwtTokensService _tokensService;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUsersService _usersService;
+    private readonly IMapper _mapper;
 
-    public AuthController(IJwtTokensService tokensService, IHttpContextAccessor httpContextAccessor,
-        IUsersService usersService)
+    public AuthController(IJwtTokensService tokensService, IUsersService usersService, IMapper mapper)
     {
         _tokensService = tokensService;
-        _httpContextAccessor = httpContextAccessor;
         _usersService = usersService;
+        _mapper = mapper;
     }
 
     [HttpPost("register")]
     public async Task<ActionResult<string>> Register([FromBody] RegisterUser request,
         CancellationToken cancellationToken)
     {
-        await _usersService.Register(request, cancellationToken);
-
+        var user = _mapper.Map<User>(request);
+        await _usersService.Register(user, cancellationToken);
         return Ok(new { Message = "Successfully registered" });
     }
 
@@ -36,10 +37,6 @@ public class AuthController : ControllerBase
         CancellationToken cancellationToken)
     {
         var token = await _usersService.Login(request.Email, request.Password, cancellationToken);
-        
-        Response.Cookies.Append("_at", token.AccessToken);
-        Response.Cookies.Append("_rt", token.RefreshToken);
-        
         return Ok(token);
     }
 
@@ -47,16 +44,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
-        var refreshToken = Request.Cookies["_rt"];
-        
-        if (string.IsNullOrEmpty(refreshToken))
-            return BadRequest(new { message = "Logout failed" });
-        
-        await _usersService.Logout(refreshToken, cancellationToken);
-        
-        Response.Cookies.Delete("_at");
-        Response.Cookies.Delete("_rt");
-        
+        await _usersService.Logout(cancellationToken);
         return Ok(new { message = "Successfully logged out" });
     }
 
@@ -64,16 +52,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> UpdateTokens(CancellationToken cancellationToken)
     {
-        var context = _httpContextAccessor.HttpContext;
-        
-        if (context is null)
-            return BadRequest();
-        
-        var token = await _tokensService.UpdateTokens(context, cancellationToken);
-        
-        Response.Cookies.Append("_at", token.AccessToken);
-        Response.Cookies.Append("_rt", token.RefreshToken);
-
+        await _tokensService.UpdateTokens(cancellationToken);
         return Ok();
     }
 }
