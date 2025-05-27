@@ -7,8 +7,8 @@ namespace EventTestTask.Core.Interfaces.Repositories;
 public interface IEventsRepository
 {
     Task<PageResult<Event>> GetEventsAsync(PageParams pageParams, CancellationToken cancellationToken);
-    Task<Event> GetEventByIdAsync(Guid eventId, CancellationToken cancellationToken);
-    Task<Event> GetEventByTitleAsync(string title, CancellationToken cancellationToken);
+    Task<Event?> GetEventByIdAsync(Guid eventId, CancellationToken cancellationToken);
+    Task<Event?> GetEventByTitleAsync(string title, CancellationToken cancellationToken);
     Task<PageResult<Event>> SearchEventsAsync(PageParams pageParams, EventFilter filter,
         CancellationToken cancellationToken);
 
@@ -17,5 +17,5 @@ public interface IEventsRepository
     Task<Guid> DeleteEventAsync(Guid eventId, CancellationToken cancellationToken);
 
     Task UploadEventImageAsync(Guid eventId, byte[] image, CancellationToken cancellationToken);
-    Task<byte[]> GetImageByEventIdAsync(Guid eventId, CancellationToken cancellationToken);
+    Task<byte[]?> GetImageByEventIdAsync(Guid eventId, CancellationToken cancellationToken);
 }

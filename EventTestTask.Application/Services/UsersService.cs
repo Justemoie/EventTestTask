@@ -1,55 +1,59 @@
 using System.Security.Authentication;
-using AutoMapper;
 using EventTestTask.Core.DTOs.Jwt;
-using EventTestTask.Core.DTOs.User;
 using EventTestTask.Core.Entities;
 using EventTestTask.Core.Enums;
 using EventTestTask.Core.Interfaces.PasswordHasher;
 using EventTestTask.Core.Interfaces.Repositories;
 using EventTestTask.Core.Interfaces.Services;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
 
 namespace EventTestTask.Application.Services;
 
 public class UsersService : IUsersService
 {
-    private readonly IValidator<UserRequest> _userValidator;
+    private readonly IValidator<User> _userValidator;
     private readonly IUsersRepository _usersRepository;
-    private readonly IMapper _mapper;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokensService _jwtTokensService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UsersService(IUsersRepository usersRepository, IMapper mapper, IValidator<UserRequest> userValidator,
-        IPasswordHasher passwordHasher, IJwtTokensService jwtTokensService)
+    public UsersService(IUsersRepository usersRepository, IValidator<User> userValidator,
+        IPasswordHasher passwordHasher, IJwtTokensService jwtTokensService, IHttpContextAccessor httpContextAccessor)
     {
         _usersRepository = usersRepository;
-        _mapper = mapper;
         _userValidator = userValidator;
         _passwordHasher = passwordHasher;
         _jwtTokensService = jwtTokensService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<UserResponse> GetUserById(Guid userId, CancellationToken cancellationToken)
+    public async Task<User> GetUserById(Guid userId, CancellationToken cancellationToken)
     {
-        var user = await _usersRepository.GetUserByIdAsync(userId, cancellationToken);
-        return _mapper.Map<UserResponse>(user);
+        return await EnsureUserExists(userId, cancellationToken);
     }
 
-    public async Task<UserResponse> GetByEmail(string email, CancellationToken cancellationToken)
+    public async Task<User> GetByEmail(string email, CancellationToken cancellationToken)
     {
         var user = await _usersRepository.GetByEmailAsync(email, cancellationToken);
-        return _mapper.Map<UserResponse>(user);
+        if (user is null)
+        {
+            throw new KeyNotFoundException("User not found");
+        }
+
+        return user;
     }
 
-    public async Task Register(RegisterUser user, CancellationToken cancellationToken)
+    public async Task Register(User user, CancellationToken cancellationToken)
     {
-        var validationResult = await _userValidator.ValidateAsync(_mapper.Map<UserRequest>(user), cancellationToken);
-
+        var validationResult = await _userValidator.ValidateAsync(user, cancellationToken);
         if (!validationResult.IsValid)
+        {
             throw new ValidationException(validationResult.Errors);
+        }
 
-        var hashedPassword = _passwordHasher.GenerateHash(user.Password);
-
+        var hashedPassword = _passwordHasher.GenerateHash(user.PasswordHash);
+        //TODO использовать маппер
         var newUser = new User(
             Guid.NewGuid(),
             user.FirstName,
@@ -63,26 +67,47 @@ public class UsersService : IUsersService
         await _usersRepository.CreateUserAsync(newUser, cancellationToken);
     }
 
-    public async Task UpdateUser(Guid userId, UserRequest userRequest, CancellationToken cancellationToken)
+    public async Task UpdateUser(Guid userId, User user, CancellationToken cancellationToken)
     {
-        await _userValidator.ValidateAndThrowAsync(userRequest, cancellationToken);
-        await _usersRepository.UpdateUserAsync(userId, _mapper.Map<User>(userRequest), cancellationToken);
+        await EnsureUserExists(userId, cancellationToken);
+        await _userValidator.ValidateAndThrowAsync(user, cancellationToken);
+
+        await _usersRepository.UpdateUserAsync(userId, user, cancellationToken);
     }
 
     public async Task<TokenResponse> Login(string email, string password, CancellationToken cancellationToken)
     {
         var user = await _usersRepository.GetByEmailAsync(email, cancellationToken);
-
-        var isValid = _passwordHasher.VerifyHash(password, user.PasswordHash);
-
-        if (!isValid)
-            throw new AuthenticationException("Invalid Email or password");
+        if (user is null || !_passwordHasher.VerifyHash(password, user.PasswordHash))
+        {
+            throw new AuthenticationException("Invalid email or password");
+        }
 
         var token = await _jwtTokensService.GenerateTokens(user, cancellationToken);
+
+        _httpContextAccessor.HttpContext.Response.Cookies.Append("_at", token.AccessToken);
+        _httpContextAccessor.HttpContext.Response.Cookies.Append("_rt", token.RefreshToken);
 
         return token;
     }
 
-    public async Task Logout(string refreshToken, CancellationToken cancellationToken) =>
+    public async Task Logout(CancellationToken cancellationToken)
+    {
+        var refreshToken = _httpContextAccessor.HttpContext.Request.Cookies["_rt"];
         await _jwtTokensService.InvalidateRefreshToken(refreshToken, cancellationToken);
+
+        _httpContextAccessor.HttpContext.Response.Cookies.Delete("_at");
+        _httpContextAccessor.HttpContext.Response.Cookies.Delete("_rt");
+    }
+
+    private async Task<User> EnsureUserExists(Guid userId, CancellationToken cancellationToken)
+    {
+        var user = await _usersRepository.GetUserByIdAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            throw new KeyNotFoundException("User not found");
+        }
+
+        return user;
+    }
 }

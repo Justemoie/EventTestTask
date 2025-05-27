@@ -16,52 +16,31 @@ public class RegistrationsRepository : IRegistrationsRepository
         _context = context;
     }
 
-    public async Task JoinToEventAsync(Guid eventId, Guid userId, CancellationToken cancellationToken)
+    public async Task RegisterForEventAsync(Guid eventId, Guid userId, Registration newRegistration,
+        CancellationToken cancellationToken)
     {
-        var @event = await _context.Events
-            .FindAsync(eventId, cancellationToken);
-        if (@event is null)
-            throw new KeyNotFoundException("Event not found");
-
-        var user = await _context.Users
-            .FindAsync(userId, cancellationToken);
-        if (user is null)
-            throw new KeyNotFoundException("User not found");
-
-        var newRegistration = new Registration(
-            Guid.NewGuid(),
-            userId,
-            eventId,
-            DateTime.UtcNow
-        );
-
         await _context.Registrations.AddAsync(newRegistration, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task LeaveFromEventAsync(Guid eventId, Guid userId, CancellationToken cancellationToken)
+    public async Task UnregisterFromEventAsync(Guid eventId, Guid userId, CancellationToken cancellationToken)
     {
         var registration = await _context.Registrations
             .SingleOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId, cancellationToken);
 
-        if (registration is null)
-            throw new KeyNotFoundException("Registration not found");
-
-        _context.Registrations.Remove(registration);
+        _context.Registrations.Remove(registration!);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<PageResult<User>?> GetParticipantsAsync(PageParams pageaParams, Guid eventId,
         CancellationToken cancellationToken)
     {
-        var query = _context.Registrations.AsQueryable();
-        
-        var participants = await query
+        var participants = await _context.Registrations
             .AsNoTracking()
+            .AsQueryable()
             .Where(r => r.EventId == eventId)
             .Select(r => r.User)
             .ToPage(pageaParams, cancellationToken);
-
         return participants;
     }
 
@@ -72,7 +51,18 @@ public class RegistrationsRepository : IRegistrationsRepository
             .Where(r => r.EventId == eventId && r.UserId == userId)
             .Select(r => r.User)
             .SingleOrDefaultAsync(cancellationToken);
-
         return participant;
+    }
+
+    public async Task<bool> CheckUserAndEventExistAsync(Guid userId, Guid eventId, CancellationToken cancellationToken)
+    {
+        var userExists = await _context.Users.AnyAsync(u => u.Id == userId, cancellationToken);
+        var eventExists = await _context.Events.AnyAsync(e => e.Id == eventId, cancellationToken);
+        return eventExists && userExists;
+    }
+
+    public async Task<bool> CheckEventExistsAsync(Guid eventId, CancellationToken cancellationToken)
+    {
+        return await _context.Events.AnyAsync(e => e.Id == eventId, cancellationToken);
     }
 }

@@ -19,53 +19,65 @@ public class JwtTokensService : IJwtTokensService
     private readonly JwtOptions _jwtOptions;
     private readonly IUsersRepository _usersRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public JwtTokensService(IOptions<JwtOptions> jwtOptions, IUsersRepository usersRepository,
-        IRefreshTokenRepository refreshTokenRepository)
+        IRefreshTokenRepository refreshTokenRepository, IHttpContextAccessor httpContextAccessor)
     {
         _jwtOptions = jwtOptions.Value;
         _usersRepository = usersRepository;
         _refreshTokenRepository = refreshTokenRepository;
+        _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<TokenResponse> GenerateTokens(User user, CancellationToken cancellationToken)
+    public async Task<TokenResponse> GenerateTokens(User? user, CancellationToken cancellationToken)
     {
         var accessToken = GenerateAccessToken(user);
         var refreshToken = GenerateRefreshToken();
-
         var token = new TokenResponse(
             DateTime.UtcNow.AddDays(_jwtOptions.ExpireDays),
             refreshToken,
             accessToken
         );
-
-        await _refreshTokenRepository.CreateAsync(user, token.RefreshToken, token.Expiration, cancellationToken);
+        
+        var newToken = new RefreshToken
+        {
+            UserId = user!.Id,
+            Token = refreshToken,
+            Expiration = token.Expiration,
+        };
+        
+        await _refreshTokenRepository.CreateAsync(user, newToken, cancellationToken);
 
         return token;
     }
 
-    public async Task<TokenResponse> UpdateTokens(HttpContext context, CancellationToken cancellationToken)
+    public async Task UpdateTokens(CancellationToken cancellationToken)
     {
-        var refreshToken = context.Request.Cookies
+        var refreshToken = _httpContextAccessor.HttpContext.Request.Cookies
             .FirstOrDefault(x => x.Key == "_rt");
-        var accessToken = context.Request.Cookies
+        var accessToken = _httpContextAccessor.HttpContext.Request.Cookies
             .FirstOrDefault(x => x.Key == "_at");
-
+        
         if (refreshToken.Key == null || accessToken.Key == null)
+        {
             throw new AuthenticationException("Access token or Refresh token is missing.");
+        }
 
         var token = await _refreshTokenRepository.GetByToken(refreshToken.Value, cancellationToken);
-
         if (token.Item2 < DateTime.UtcNow)
+        {
             throw new AuthenticationException("The refresh token has expired");
+        }
 
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(accessToken.Value);
-
         var userId = Guid.Parse(jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)!.Value);
         var user = await _usersRepository.GetUserByIdAsync(userId, cancellationToken);
 
-        return await GenerateTokens(user, cancellationToken);
+        var newToken = await GenerateTokens(user, cancellationToken);
+        _httpContextAccessor.HttpContext.Response.Cookies.Append("_at", newToken.AccessToken);
+        _httpContextAccessor.HttpContext.Response.Cookies.Append("_rt", newToken.RefreshToken);
     }
 
     private string GenerateAccessToken(User user)
@@ -90,9 +102,13 @@ public class JwtTokensService : IJwtTokensService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private string GenerateRefreshToken() =>
-        Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+    private string GenerateRefreshToken()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+    }
 
-    public async Task InvalidateRefreshToken(string refreshToken, CancellationToken cancellationToken) =>
+    public async Task InvalidateRefreshToken(string refreshToken, CancellationToken cancellationToken)
+    {
         await _refreshTokenRepository.DeleteByTokenAsync(refreshToken, cancellationToken);
+    }
 }

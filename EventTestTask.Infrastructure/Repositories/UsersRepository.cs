@@ -14,44 +14,26 @@ public class UsersRepository : IUsersRepository
         _context = context;
     }
 
-    public async Task<User> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<User?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         var user = await _context.Users
             .AsNoTracking()
             .Include(u => u.Events)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-        if (user is null)
-            throw new KeyNotFoundException("User not found");
-
         return user;
     }
 
-    public async Task<User> GetByEmailAsync(string email, CancellationToken cancellationToken)
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
     {
         var user = await _context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
-
-        if (user is null)
-            throw new KeyNotFoundException("User not found");
-
         return user;
     }
 
     public async Task CreateUserAsync(User user, CancellationToken cancellationToken)
     {
-        var newUser = new User(
-            Guid.NewGuid(),
-            user.FirstName,
-            user.LastName,
-            user.BirthDate,
-            user.Email,
-            user.PasswordHash,
-            user.Role
-        );
-
-        await _context.Users.AddAsync(newUser, cancellationToken);
+        await _context.Users.AddAsync(user, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
 

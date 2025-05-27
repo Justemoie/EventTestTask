@@ -19,51 +19,31 @@ public class EventsRepository : IEventsRepository
 
     public async Task<PageResult<Event>> GetEventsAsync(PageParams pageParams, CancellationToken cancellationToken)
     {
-        var query = _context.Events.AsQueryable();
-
-        var events = await query.ToPage(pageParams, cancellationToken);
-
+        var events = await _context.Events
+            .AsNoTracking()
+            .AsQueryable()
+            .ToPage(pageParams, cancellationToken);
         return events;
     }
 
-    public async Task<Event> GetEventByIdAsync(Guid eventId, CancellationToken cancellationToken)
+    public async Task<Event?> GetEventByIdAsync(Guid eventId, CancellationToken cancellationToken)
     {
         var @event = await _context.Events
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == eventId, cancellationToken);
-
-        if (@event is null)
-            throw new KeyNotFoundException("Event not found");
-
         return @event;
     }
 
-    public async Task<Event> GetEventByTitleAsync(string title, CancellationToken cancellationToken)
+    public async Task<Event?> GetEventByTitleAsync(string title, CancellationToken cancellationToken)
     {
         var @event = await _context.Events
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Title == title, cancellationToken);
-
-        if (@event is null)
-            throw new KeyNotFoundException("Event not found");
-
         return @event;
     }
 
-    public async Task CreateEventAsync(Event @event, CancellationToken cancellationToken)
+    public async Task CreateEventAsync(Event @newEvent, CancellationToken cancellationToken)
     {
-        var newEvent = new Event(
-            Guid.NewGuid(),
-            @event.Title,
-            @event.Description,
-            @event.StartDate,
-            @event.EndDate,
-            @event.Location,
-            @event.Category,
-            @event.MaxParticipants,
-            @event.Image
-        );
-
         await _context.AddAsync(newEvent, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
@@ -88,22 +68,17 @@ public class EventsRepository : IEventsRepository
         await _context.Events
             .Where(e => e.Id == eventId)
             .ExecuteDeleteAsync(cancellationToken);
-
         return eventId;
     }
 
     public async Task<PageResult<Event>> SearchEventsAsync(
-        PageParams pageParams,
-        EventFilter filter,
-        CancellationToken cancellationToken)
+        PageParams pageParams, EventFilter filter, CancellationToken cancellationToken)
     {
-        var query = _context.Events.AsQueryable();
-
-        var events = await query
-            .Filter(filter)
+        var events = await _context.Events
             .AsNoTracking()
+            .AsQueryable()
+            .Filter(filter)
             .ToPage(pageParams, cancellationToken);
-
         return events;
     }
 
@@ -115,15 +90,11 @@ public class EventsRepository : IEventsRepository
                 .SetProperty(e => e.Image, image), cancellationToken);
     }
 
-    public async Task<byte[]> GetImageByEventIdAsync(Guid eventId, CancellationToken cancellationToken)
+    public async Task<byte[]?> GetImageByEventIdAsync(Guid eventId, CancellationToken cancellationToken)
     {
         var @event = await _context.Events
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == eventId, cancellationToken);
-        
-        if(@event is null)
-            throw new KeyNotFoundException("Event not found");
-        
-        return @event.Image;
+        return @event?.Image;
     }
 }

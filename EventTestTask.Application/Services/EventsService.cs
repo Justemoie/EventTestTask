@@ -1,5 +1,3 @@
-using AutoMapper;
-using EventTestTask.Core.DTOs.Event;
 using EventTestTask.Core.Entities;
 using EventTestTask.Core.Models.Filters;
 using EventTestTask.Core.Models.Pagination;
@@ -13,74 +11,104 @@ namespace EventTestTask.Application.Services;
 
 public class EventsService : IEventsService
 {
-    private readonly IMapper _mapper;
     private readonly IMemoryCache _cache;
     private readonly ILogger<EventsService> _logger;
     private readonly IEventsRepository _eventsRepository;
-    private readonly IValidator<EventRequest> _eventValidator;
+    private readonly IValidator<Event> _eventValidator;
 
-    public EventsService(IEventsRepository eventsRepository, IMapper mapper, IValidator<EventRequest> eventValidator,
+    public EventsService(IEventsRepository eventsRepository, IValidator<Event> eventValidator,
         IMemoryCache cache, ILogger<EventsService> logger)
     {
-        _mapper = mapper;
         _eventsRepository = eventsRepository;
         _eventValidator = eventValidator;
         _cache = cache;
         _logger = logger;
     }
 
-    public async Task<PageResult<EventResponse>> GetEvents(PageParams pageParams, CancellationToken cancellationToken)
+    public async Task<PageResult<Event>> GetEvents(PageParams pageParams, CancellationToken cancellationToken)
     {
-        var events = await _eventsRepository.GetEventsAsync(pageParams, cancellationToken);
-        return _mapper.Map<PageResult<EventResponse>>(events);
+        return await _eventsRepository.GetEventsAsync(pageParams, cancellationToken);
     }
 
-    public async Task<EventResponse> GetEventById(Guid eventId, CancellationToken cancellationToken)
+    public async Task<Event> GetEventById(Guid eventId, CancellationToken cancellationToken)
     {
         var @event = await _eventsRepository.GetEventByIdAsync(eventId, cancellationToken);
-        return _mapper.Map<EventResponse>(@event);
+        if (@event is null)
+        {
+            throw new KeyNotFoundException("Event not found");
+        }
+
+        return @event;
     }
 
-    public async Task<EventResponse> GetEventByTitle(string title, CancellationToken cancellationToken)
+    public async Task<Event> GetEventByTitle(string title, CancellationToken cancellationToken)
     {
         var @event = await _eventsRepository.GetEventByTitleAsync(title, cancellationToken);
-        return _mapper.Map<EventResponse>(@event);
+        if (@event is null)
+        {
+            throw new KeyNotFoundException("Event not found");
+        }
+
+        return @event;
     }
 
-    public async Task CreateEvent(EventRequest @event, CancellationToken cancellationToken)
+    public async Task CreateEvent(Event @event, CancellationToken cancellationToken)
     {
         await _eventValidator.ValidateAndThrowAsync(@event, cancellationToken);
-        await _eventsRepository.CreateEventAsync(_mapper.Map<Event>(@event), cancellationToken);
+        await _eventsRepository.CreateEventAsync(@event, cancellationToken);
     }
 
-    public async Task UpdateEvent(Guid eventId, EventRequest @event, CancellationToken cancellationToken)
+    public async Task UpdateEvent(Guid eventId, Event @event, CancellationToken cancellationToken)
     {
+        var existingEvent = await _eventsRepository.GetEventByIdAsync(eventId, cancellationToken);
+        if (existingEvent is null)
+        {
+            throw new KeyNotFoundException("Event not found");
+        }
+
+        await _eventValidator.ValidateAndThrowAsync(@event, cancellationToken);
+        await _eventsRepository.UpdateEventAsync(eventId, @event, cancellationToken);
         _cache.Remove($"image_{eventId}".ToString());
-        await _eventValidator.ValidateAndThrowAsync(@event, cancellationToken);
-        await _eventsRepository.UpdateEventAsync(eventId, _mapper.Map<Event>(@event), cancellationToken);
     }
 
     public async Task<Guid> DeleteEvent(Guid eventId, CancellationToken cancellationToken)
     {
+        var existingEvent = await _eventsRepository.GetEventByIdAsync(eventId, cancellationToken);
+        if (existingEvent is null)
+        {
+            throw new KeyNotFoundException("Event not found");
+        }
+
         _cache.Remove($"image_{eventId}".ToString());
         return await _eventsRepository.DeleteEventAsync(eventId, cancellationToken);
     }
 
-    public async Task<PageResult<EventResponse>> SearchEvents(PageParams pageParams, EventFilter filter,
+    public async Task<PageResult<Event>> SearchEvents(PageParams pageParams, EventFilter filter,
         CancellationToken cancellationToken)
     {
-        var events = await _eventsRepository.SearchEventsAsync(pageParams, filter, cancellationToken);
-        return _mapper.Map<PageResult<EventResponse>>(events);
+        return await _eventsRepository.SearchEventsAsync(pageParams, filter, cancellationToken);
     }
 
     public async Task UploadEventImage(Guid eventId, byte[] image, CancellationToken cancellationToken)
     {
+        var existingEvent = await _eventsRepository.GetEventByIdAsync(eventId, cancellationToken);
+        if (existingEvent is null)
+        {
+            throw new KeyNotFoundException("Event not found");
+        }
+
         _cache.Remove($"image_{eventId}".ToString());
         await _eventsRepository.UploadEventImageAsync(eventId, image, cancellationToken);
     }
 
     public async Task<byte[]> GetImageByEventId(Guid eventId, CancellationToken cancellationToken)
     {
+        var existingEvent = await _eventsRepository.GetEventByIdAsync(eventId, cancellationToken);
+        if (existingEvent is null)
+        {
+            throw new KeyNotFoundException("Event not found");
+        }
+
         var cacheKey = $"image_{eventId}";
 
         if (!_cache.TryGetValue(cacheKey, out byte[]? image) || image == null)
@@ -88,7 +116,9 @@ public class EventsService : IEventsService
             image = await _eventsRepository.GetImageByEventIdAsync(eventId, cancellationToken);
 
             if (image == null || image.Length == 0)
-                throw new InvalidOperationException("Image for event not found");
+            {
+                throw new KeyNotFoundException("Image for event not found");
+            }
 
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(5))
