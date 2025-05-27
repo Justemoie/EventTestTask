@@ -1,9 +1,9 @@
-using EventTestTask.Core.DTOs.User;
+using EventTestTask.Core.Entities;
 using FluentValidation;
 
 namespace EventTestTask.Application.Validators;
 
-public sealed class UserValidator : AbstractValidator<UserRequest>
+public sealed class UserValidator : AbstractValidator<User>
 {
     public UserValidator()
     {

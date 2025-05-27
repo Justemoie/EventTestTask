@@ -1,8 +1,8 @@
 using AutoMapper;
-using EventTestTask.Core.DTOs.Jwt;
 using EventTestTask.Core.DTOs.User;
 using EventTestTask.Core.Entities;
 using EventTestTask.Core.Interfaces.Services;
+using EventTestTask.Core.Models.JWT;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

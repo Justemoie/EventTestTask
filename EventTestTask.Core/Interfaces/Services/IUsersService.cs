@@ -1,5 +1,5 @@
-using EventTestTask.Core.DTOs.Jwt;
 using EventTestTask.Core.Entities;
+using EventTestTask.Core.Models.JWT;
 
 namespace EventTestTask.Core.Interfaces.Services;
 

@@ -22,10 +22,10 @@ public class Event
 
     public IList<Registration> Participants { get; private set; } = new List<Registration>();
 
-    public byte[] Image { get; private set; }
+    public byte[]? Image { get; private set; }
 
     public Event(Guid id, string title, string description, DateTime startDate, DateTime endDate, string location,
-        EventCategory category, int maxParticipants, byte[] image)
+        EventCategory category, int maxParticipants, byte[]? image)
     {
         Id = id;
         Title = title;

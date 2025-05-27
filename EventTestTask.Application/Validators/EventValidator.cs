@@ -1,9 +1,9 @@
-using EventTestTask.Core.DTOs.Event;
+using EventTestTask.Core.Entities;
 using FluentValidation;
 
 namespace EventTestTask.Application.Validators;
 
-public class EventValidator : AbstractValidator<EventRequest>
+public class EventValidator : AbstractValidator<Event>
 {
     public EventValidator()
     {

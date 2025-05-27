@@ -1,10 +1,10 @@
 using System.Security.Authentication;
-using EventTestTask.Core.DTOs.Jwt;
 using EventTestTask.Core.Entities;
 using EventTestTask.Core.Enums;
 using EventTestTask.Core.Interfaces.PasswordHasher;
 using EventTestTask.Core.Interfaces.Repositories;
 using EventTestTask.Core.Interfaces.Services;
+using EventTestTask.Core.Models.JWT;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 
@@ -53,7 +53,6 @@ public class UsersService : IUsersService
         }
 
         var hashedPassword = _passwordHasher.GenerateHash(user.PasswordHash);
-        //TODO использовать маппер
         var newUser = new User(
             Guid.NewGuid(),
             user.FirstName,

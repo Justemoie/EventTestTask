@@ -1,13 +1,12 @@
 using System.Text;
+using EventTestTask.Api.Mappings;
 using EventTestTask.Application.Authentication;
 using EventTestTask.Application.Services;
 using EventTestTask.Application.Validators;
-using EventTestTask.Core.DTOs.Event;
-using EventTestTask.Core.DTOs.User;
+using EventTestTask.Core.Entities;
 using EventTestTask.Core.Interfaces.PasswordHasher;
 using EventTestTask.Core.Interfaces.Repositories;
 using EventTestTask.Core.Interfaces.Services;
-using EventTestTask.Core.Mappings;
 using EventTestTask.Infrastructure.Repositories;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,7 +24,7 @@ public static class ServiceCollectionExtension
         
         services.AddScoped<IUsersService, UsersService>();
         services.AddScoped<IEventsService, EventsService>();
-        services.AddScoped<IRegistrationsService, RegistartionsService>();
+        services.AddScoped<IRegistrationsService, RegistrationsService>();
         services.AddScoped<IJwtTokensService, JwtTokensService>();
         
         return services;
@@ -65,8 +64,8 @@ public static class ServiceCollectionExtension
 
     public static IServiceCollection AddValidators(this IServiceCollection services)
     {
-        services.AddScoped<IValidator<UserRequest>, UserValidator>();
-        services.AddScoped<IValidator<EventRequest>, EventValidator>();
+        services.AddScoped<IValidator<User>, UserValidator>();
+        services.AddScoped<IValidator<Event>, EventValidator>();
 
         return services;
     }

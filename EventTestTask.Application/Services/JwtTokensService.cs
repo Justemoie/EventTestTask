@@ -4,10 +4,10 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using EventTestTask.Application.Authentication;
-using EventTestTask.Core.DTOs.Jwt;
 using EventTestTask.Core.Entities;
 using EventTestTask.Core.Interfaces.Repositories;
 using EventTestTask.Core.Interfaces.Services;
+using EventTestTask.Core.Models.JWT;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -34,19 +34,20 @@ public class JwtTokensService : IJwtTokensService
     {
         var accessToken = GenerateAccessToken(user);
         var refreshToken = GenerateRefreshToken();
-        var token = new TokenResponse(
-            DateTime.UtcNow.AddDays(_jwtOptions.ExpireDays),
-            refreshToken,
-            accessToken
-        );
-        
+        var token = new TokenResponse
+        {
+            Expiration = DateTime.UtcNow.AddDays(_jwtOptions.ExpireDays),
+            RefreshToken = refreshToken,
+            AccessToken = accessToken
+        };
+
         var newToken = new RefreshToken
         {
             UserId = user!.Id,
             Token = refreshToken,
             Expiration = token.Expiration,
         };
-        
+
         await _refreshTokenRepository.CreateAsync(user, newToken, cancellationToken);
 
         return token;
@@ -58,7 +59,7 @@ public class JwtTokensService : IJwtTokensService
             .FirstOrDefault(x => x.Key == "_rt");
         var accessToken = _httpContextAccessor.HttpContext.Request.Cookies
             .FirstOrDefault(x => x.Key == "_at");
-        
+
         if (refreshToken.Key == null || accessToken.Key == null)
         {
             throw new AuthenticationException("Access token or Refresh token is missing.");
