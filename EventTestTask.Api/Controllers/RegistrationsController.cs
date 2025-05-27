@@ -1,4 +1,4 @@
-using EventTestTask.Core.DTOs.User;
+using EventTestTask.Api.DTOs.User;
 using EventTestTask.Core.Interfaces.Services;
 using EventTestTask.Core.Models.Pagination;
 using Microsoft.AspNetCore.Authorization;
@@ -29,7 +29,7 @@ public class RegistrationsController : ControllerBase
 
     [HttpGet("{eventId:guid}/users/{userId:guid}")]
     [Authorize]
-    public async Task<ActionResult<UserResponse?>> GetEventParticipant([FromRoute] Guid eventId, [FromRoute] Guid userId,
+    public async Task<ActionResult<UserResponse?>> GetEventParticipantById([FromRoute] Guid eventId, [FromRoute] Guid userId,
         CancellationToken cancellationToken)
     {
         var participant = await _registrationsService.GetEventParticipantById(eventId, userId, cancellationToken);

@@ -1,6 +1,6 @@
-using EventTestTask.Core.DTOs.Registration;
+using EventTestTask.Api.DTOs.Registration;
 
-namespace EventTestTask.Core.DTOs.User;
+namespace EventTestTask.Api.DTOs.User;
 
 public record UserResponse(
     Guid Id,

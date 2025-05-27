@@ -8,19 +8,20 @@ namespace EventTestTask.Application.Services;
 public class RegistrationsService : IRegistrationsService
 {
     private readonly IRegistrationsRepository _registrationsRepository;
+    private readonly IEventsRepository _eventsRepository;
+    private readonly IUsersRepository _usersRepository;
 
-    public RegistrationsService(IRegistrationsRepository registrationsRepository)
+    public RegistrationsService(IRegistrationsRepository registrationsRepository, IEventsRepository eventsRepository,
+        IUsersRepository usersRepository)
     {
         _registrationsRepository = registrationsRepository;
+        _eventsRepository = eventsRepository;
+        _usersRepository = usersRepository;
     }
 
     public async Task RegisterForEvent(Guid eventId, Guid userId, CancellationToken cancellationToken)
     {
-        if (!await _registrationsRepository.CheckUserAndEventExistAsync(userId, eventId, cancellationToken))
-        {
-            throw new KeyNotFoundException("User or event not found");
-        }
-
+        await CheckUserAndEventExists(userId, eventId, cancellationToken);
         var newRegistration = new Registration(
             Guid.NewGuid(),
             userId,
@@ -33,18 +34,15 @@ public class RegistrationsService : IRegistrationsService
 
     public async Task UnregisterFromEvent(Guid eventId, Guid userId, CancellationToken cancellationToken)
     {
-        if (!await _registrationsRepository.CheckUserAndEventExistAsync(userId, eventId, cancellationToken))
-        {
-            throw new KeyNotFoundException("User or event not found");
-        }
-
+        await CheckUserAndEventExists(userId, eventId, cancellationToken);
         await _registrationsRepository.UnregisterFromEventAsync(eventId, userId, cancellationToken);
     }
 
     public async Task<PageResult<User>?> GetEventParticipants(PageParams pageParams, Guid eventId,
         CancellationToken cancellationToken)
     {
-        if (!await _registrationsRepository.CheckEventExistsAsync(eventId, cancellationToken))
+        var @event = await _eventsRepository.GetEventByIdAsync(eventId, cancellationToken);
+        if (@event is null)
         {
             throw new KeyNotFoundException("Event not found");
         }
@@ -55,11 +53,17 @@ public class RegistrationsService : IRegistrationsService
     public async Task<User?> GetEventParticipantById(Guid eventId, Guid userId,
         CancellationToken cancellationToken)
     {
-        if (!await _registrationsRepository.CheckUserAndEventExistAsync(userId, eventId, cancellationToken))
+        await CheckUserAndEventExists(userId, eventId, cancellationToken);
+        return await _registrationsRepository.GetParticipantByIdAsync(eventId, userId, cancellationToken);
+    }
+
+    private async Task CheckUserAndEventExists(Guid eventId, Guid userId, CancellationToken cancellationToken)
+    {
+        var @event = await _eventsRepository.GetEventByIdAsync(eventId, cancellationToken);
+        var user = await _usersRepository.GetUserByIdAsync(userId, cancellationToken);
+        if (@event is null || user is null)
         {
             throw new KeyNotFoundException("User or event not found");
         }
-
-        return await _registrationsRepository.GetParticipantByIdAsync(eventId, userId, cancellationToken);
     }
 }

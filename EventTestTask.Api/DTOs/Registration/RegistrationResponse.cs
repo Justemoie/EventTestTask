@@ -1,4 +1,4 @@
-namespace EventTestTask.Core.DTOs.Registration;
+namespace EventTestTask.Api.DTOs.Registration;
 
 public record RegistrationResponse(
     Guid Id,

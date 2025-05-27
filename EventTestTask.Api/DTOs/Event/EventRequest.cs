@@ -1,6 +1,6 @@
 using EventTestTask.Core.Enums;
 
-namespace EventTestTask.Core.DTOs.Event;
+namespace EventTestTask.Api.DTOs.Event;
 
 public record EventRequest(
     string Title,

@@ -1,5 +1,5 @@
 using AutoMapper;
-using EventTestTask.Core.DTOs.Event;
+using EventTestTask.Api.DTOs.Event;
 using EventTestTask.Core.Entities;
 using EventTestTask.Core.Models.Pagination;
 
@@ -23,9 +23,7 @@ public class EventProfile : Profile
             .ForMember(dest => dest.Participants, opt => opt.Ignore());
 
         CreateMap<Event, EventRequest>();
-
         CreateMap<EventResponse, Event>().ReverseMap();
-
         CreateMap<PageResult<Event>, PageResult<EventResponse>>().ReverseMap();
     }
 }

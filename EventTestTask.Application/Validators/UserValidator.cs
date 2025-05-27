@@ -7,7 +7,6 @@ public sealed class UserValidator : AbstractValidator<User>
 {
     public UserValidator()
     {
-        
         RuleFor(users => users.FirstName)
             .NotEmpty()
             .WithMessage("First name cannot be empty")
@@ -31,5 +30,11 @@ public sealed class UserValidator : AbstractValidator<User>
             .WithMessage("Invalid email address")
             .MaximumLength(100)
             .WithMessage("Email cannot exceed 50 characters");
+
+        RuleFor(user => user.PasswordHash)
+            .NotEmpty()
+            .WithMessage("Password cannot be empty")
+            .MinimumLength(6)
+            .WithMessage("Minimum password length is 6 characters");
     }
 }

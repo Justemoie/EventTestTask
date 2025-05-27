@@ -62,7 +62,7 @@ public class UsersService : IUsersService
             hashedPassword,
             UserRole.User
         );
-
+        
         await _usersRepository.CreateUserAsync(newUser, cancellationToken);
     }
 
@@ -83,10 +83,10 @@ public class UsersService : IUsersService
         }
 
         var token = await _jwtTokensService.GenerateTokens(user, cancellationToken);
-
+        
         _httpContextAccessor.HttpContext.Response.Cookies.Append("_at", token.AccessToken);
         _httpContextAccessor.HttpContext.Response.Cookies.Append("_rt", token.RefreshToken);
-
+        
         return token;
     }
 

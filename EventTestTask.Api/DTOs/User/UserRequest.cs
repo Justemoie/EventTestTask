@@ -1,4 +1,4 @@
-namespace EventTestTask.Core.DTOs.User;
+namespace EventTestTask.Api.DTOs.User;
 
 public record UserRequest(
     string FirstName,

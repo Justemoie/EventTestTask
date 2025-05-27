@@ -37,7 +37,7 @@ public class EventsService : IEventsService
         {
             throw new KeyNotFoundException("Event not found");
         }
-
+        
         return @event;
     }
 
@@ -114,12 +114,11 @@ public class EventsService : IEventsService
         if (!_cache.TryGetValue(cacheKey, out byte[]? image) || image == null)
         {
             image = await _eventsRepository.GetImageByEventIdAsync(eventId, cancellationToken);
-
             if (image == null || image.Length == 0)
             {
                 throw new KeyNotFoundException("Image for event not found");
             }
-
+            
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(5))
                 .SetAbsoluteExpiration(TimeSpan.FromMinutes(10))
@@ -132,7 +131,7 @@ public class EventsService : IEventsService
         {
             _logger.LogInformation($"image {eventId} has been retrieved from cache");
         }
-
+        
         return image;
     }
 }

@@ -1,7 +1,7 @@
-using EventTestTask.Core.DTOs.Registration;
+using EventTestTask.Api.DTOs.Registration;
 using EventTestTask.Core.Enums;
 
-namespace EventTestTask.Core.DTOs.Event;
+namespace EventTestTask.Api.DTOs.Event;
 
 public record EventResponse(
     Guid Id,

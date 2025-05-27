@@ -1,5 +1,5 @@
 using AutoMapper;
-using EventTestTask.Core.DTOs.Event;
+using EventTestTask.Api.DTOs.Event;
 using EventTestTask.Core.Entities;
 using EventTestTask.Core.Interfaces.Services;
 using EventTestTask.Core.Models.Filters;

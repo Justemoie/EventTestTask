@@ -53,16 +53,4 @@ public class RegistrationsRepository : IRegistrationsRepository
             .SingleOrDefaultAsync(cancellationToken);
         return participant;
     }
-
-    public async Task<bool> CheckUserAndEventExistAsync(Guid userId, Guid eventId, CancellationToken cancellationToken)
-    {
-        var userExists = await _context.Users.AnyAsync(u => u.Id == userId, cancellationToken);
-        var eventExists = await _context.Events.AnyAsync(e => e.Id == eventId, cancellationToken);
-        return eventExists && userExists;
-    }
-
-    public async Task<bool> CheckEventExistsAsync(Guid eventId, CancellationToken cancellationToken)
-    {
-        return await _context.Events.AnyAsync(e => e.Id == eventId, cancellationToken);
-    }
 }

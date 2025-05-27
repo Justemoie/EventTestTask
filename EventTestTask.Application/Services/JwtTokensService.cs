@@ -59,7 +59,6 @@ public class JwtTokensService : IJwtTokensService
             .FirstOrDefault(x => x.Key == "_rt");
         var accessToken = _httpContextAccessor.HttpContext.Request.Cookies
             .FirstOrDefault(x => x.Key == "_at");
-
         if (refreshToken.Key == null || accessToken.Key == null)
         {
             throw new AuthenticationException("Access token or Refresh token is missing.");
@@ -73,10 +72,11 @@ public class JwtTokensService : IJwtTokensService
 
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(accessToken.Value);
+
         var userId = Guid.Parse(jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)!.Value);
         var user = await _usersRepository.GetUserByIdAsync(userId, cancellationToken);
-
         var newToken = await GenerateTokens(user, cancellationToken);
+
         _httpContextAccessor.HttpContext.Response.Cookies.Append("_at", newToken.AccessToken);
         _httpContextAccessor.HttpContext.Response.Cookies.Append("_rt", newToken.RefreshToken);
     }
@@ -99,7 +99,7 @@ public class JwtTokensService : IJwtTokensService
             claims: claims,
             signingCredentials: signingCredentials,
             expires: DateTime.UtcNow.AddHours(_jwtOptions.ExpireMinutes));
-
+        
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 

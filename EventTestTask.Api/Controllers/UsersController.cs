@@ -1,5 +1,5 @@
 using AutoMapper;
-using EventTestTask.Core.DTOs.User;
+using EventTestTask.Api.DTOs.User;
 using EventTestTask.Core.Entities;
 using EventTestTask.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
