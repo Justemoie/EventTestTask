@@ -20,6 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\EventTestTask.Api\EventTestTask.Api.csproj" />
         <ProjectReference Include="..\EventTestTask.Application\EventTestTask.Application.csproj" />
         <ProjectReference Include="..\EventTestTask.Infrastructure\EventTestTask.Infrastructure.csproj"/>
         <ProjectReference Include="..\EventTestTask.Core\EventTestTask.Core.csproj"/>

@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using AutoFixture;
-using AutoFixture.AutoMoq;
 using EventTestTask.Core.Entities;
 using EventTestTask.Core.Enums;
 using EventTestTask.Infrastructure.ApplicationContext;
@@ -13,13 +10,10 @@ namespace EventTestTask.Tests.User;
 
 public class UserRepositoryTests
 {
-    private readonly IFixture _fixture;
     private readonly DbContextOptions<AppDbContext> _dbContextOptions;
 
     public UserRepositoryTests()
     {
-        _fixture = new Fixture().Customize(new AutoMoqCustomization());
-
         _dbContextOptions = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
@@ -86,7 +80,7 @@ public class UserRepositoryTests
             await context.SaveChangesAsync();
         }
 
-        Core.Entities.User result;
+        Core.Entities.User? result;
         await using (var context = CreateDbContext())
         {
             var repository = new UsersRepository(context);
@@ -99,7 +93,7 @@ public class UserRepositoryTests
     }
 
     [Fact]
-    public async Task GetUserByIdAsync_WhenUserDoesNotExist_ThrowsKeyNotFoundException()
+    public async Task GetUserByIdAsync_WhenUserDoesNotExist_ReturnsNull()
     {
         var existingUserId = Guid.NewGuid();
         var nonExistentUserId = Guid.NewGuid();
@@ -119,15 +113,13 @@ public class UserRepositoryTests
             context.Users.Add(user);
             await context.SaveChangesAsync();
         }
-
+        
         await using (var context = CreateDbContext())
         {
             var repository = new UsersRepository(context);
 
-            await FluentActions.Awaiting(() =>
-                    repository.GetUserByIdAsync(nonExistentUserId, CancellationToken.None))
-                .Should().ThrowAsync<KeyNotFoundException>()
-                .WithMessage("User not found");
+            var result = await repository.GetUserByIdAsync(nonExistentUserId, CancellationToken.None);
+            result.Should().BeNull();
         }
     }
 
@@ -146,9 +138,9 @@ public class UserRepositoryTests
 
         await using var context = CreateDbContext();
         var repository = new UsersRepository(context);
-        
+
         await repository.CreateUserAsync(user, CancellationToken.None);
-        
+
         var createdUser = await context.Users.FirstOrDefaultAsync();
         createdUser.Should().NotBeNull();
         createdUser!.Id.Should().NotBe(Guid.Empty);
