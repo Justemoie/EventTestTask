@@ -1,6 +1,8 @@
 services:
-  EventTestTask:
-    image: test_task_modsen
+  eventtesttask:
+    build:
+      context: .. 
+      dockerfile: EventTestTask.Api/Dockerfile
     ports:
       - "8080:8080"
     container_name: events_test_task
@@ -11,7 +13,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
   
   postgres:
-    image: postgres:latest
+    image: postgres:17
     ports:
       - "5433:5432"
     container_name: db_postgres_events

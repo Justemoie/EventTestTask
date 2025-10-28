@@ -9,12 +9,14 @@ COPY EventTestTask.Infrastructure/EventTestTask.Infrastructure.csproj EventTestT
 RUN dotnet restore EventTestTask.Api/EventTestTask.Api.csproj
 
 COPY . .
+
 FROM build AS publish
-RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish EventTestTask.Api/EventTestTask.Api.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 EXPOSE 8080
+EXPOSE 8081
 
 COPY --from=publish /app/publish .
 
