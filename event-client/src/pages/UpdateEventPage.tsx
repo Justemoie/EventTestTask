@@ -1,0 +1,249 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Event, EventRequest, EventCategory } from '../types';
+import { apiService } from '../services/api';
+import { ArrowLeft } from 'lucide-react';
+
+interface EventFormData extends Omit<EventRequest, 'image'> {
+  startTime?: string;
+  endTime?: string;
+  imageFile?: File;
+  imagePreview?: string;
+}
+
+const UpdateEventPage: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { eventId } = useParams<{ eventId: string }>();
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState('');
+  
+  const [formData, setFormData] = useState<EventFormData>({
+    title: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    location: '',
+    category: EventCategory.Other,
+    maxParticipants: 0,
+    startTime: '',
+    endTime: ''
+  });
+
+  const categoryOptions = [
+    { value: EventCategory.Conference, label: 'Конференция' },
+    { value: EventCategory.Workshop, label: 'Воркшоп' },
+    { value: EventCategory.Webinar, label: 'Вебинар' },
+    { value: EventCategory.Meetup, label: 'Митап' },
+    { value: EventCategory.Party, label: 'Вечеринка' },
+    { value: EventCategory.Sport, label: 'Спорт' },
+    { value: EventCategory.Other, label: 'Другое' }
+  ];
+
+  useEffect(() => {
+    if (!eventId) return;
+    const fetchEvent = async () => {
+      try {
+        setFetching(true);
+        const event: Event = await apiService.getEventById(eventId);
+        const start = new Date(event.startDate);
+        const end = new Date(event.endDate);
+        
+        setFormData({
+          title: event.title,
+          description: event.description,
+          startDate: start.toISOString().split('T')[0],
+          startTime: start.toTimeString().slice(0,5),
+          endDate: end.toISOString().split('T')[0],
+          endTime: end.toTimeString().slice(0,5),
+          location: event.location,
+          category: event.category,
+          maxParticipants: event.maxParticipants,
+          imagePreview: event.image
+            ? `data:image/png;base64,${Buffer.from(event.image).toString('base64')}`
+            : undefined
+        });
+      } catch (err) {
+        console.error(err);
+        setError('Ошибка загрузки события');
+      } finally {
+        setFetching(false);
+      }
+    };
+    fetchEvent();
+  }, [eventId]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'maxParticipants' || name === 'category' ? parseInt(value) || 0 : value
+    }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      setFormData(prev => ({
+        ...prev,
+        imageFile: file,
+        imagePreview: URL.createObjectURL(file)
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!isAuthenticated) {
+        setError('Необходима авторизация');
+        return;
+    }
+
+    const startDateTime = `${formData.startDate}T${formData.startTime}:00`;
+    const endDateTime = `${formData.endDate}T${formData.endTime}:00`;
+
+    setLoading(true);
+
+    try {
+        await apiService.updateEventWithImage(
+            eventId!,
+            {
+                title: formData.title,
+                description: formData.description,
+                startDate: startDateTime,
+                endDate: endDateTime,
+                location: formData.location,
+                category: formData.category,
+                maxParticipants: formData.maxParticipants,
+            },
+            formData.imageFile
+        );
+
+        navigate('/my-events');
+    } catch (err: any) {
+        console.error('Error updating event:', err);
+        setError(err.response?.data?.message || 'Ошибка обновления события');
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">Необходима авторизация</h2>
+          <p className="text-gray-600">Войдите в систему, чтобы редактировать события</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetching) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Загрузка события...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <button onClick={() => navigate(-1)} className="flex items-center mb-6 text-gray-600 hover:text-gray-900">
+          <ArrowLeft className="h-5 w-5 mr-2" /> Назад
+        </button>
+
+        <h1 className="text-3xl font-bold mb-2 text-gray-900">Редактировать мероприятие</h1>
+        <p className="text-gray-600 mb-6">Обновите данные события и сохраните изменения</p>
+
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-300 p-6 space-y-6">
+
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-gray-700">Название мероприятия *</label>
+            <input type="text" name="title" required value={formData.title} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500" />
+          </div>
+
+          {/* Date & Time */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-2 text-gray-700">Дата начала *</label>
+              <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500" />
+            </div>
+            <div>
+              <label className="block mb-2 text-gray-700">Время начала *</label>
+              <input type="time" name="startTime" value={formData.startTime} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500" />
+            </div>
+            <div>
+              <label className="block mb-2 text-gray-700">Дата окончания *</label>
+              <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500" />
+            </div>
+            <div>
+              <label className="block mb-2 text-gray-700">Время окончания *</label>
+              <input type="time" name="endTime" value={formData.endTime} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500" />
+            </div>
+          </div>
+
+          {/* Location */}
+          <div>
+            <label className="block mb-2 text-gray-700">Место проведения *</label>
+            <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500" />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block mb-2 text-gray-700">Описание мероприятия *</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500" />
+          </div>
+
+          {/* Max Participants & Category */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-2 text-gray-700">Максимальное количество участников</label>
+              <select name="maxParticipants" value={formData.maxParticipants} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500">
+                <option value={0}>Без ограничений</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
+              </select>
+            </div>
+            <div>
+              <label className="block mb-2 text-gray-700">Категория мероприятия</label>
+              <select name="category" value={formData.category} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500">
+                {categoryOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Event Image */}
+          <div>
+            <label className="block mb-2 text-gray-700">Изображение мероприятия</label>
+            {formData.imagePreview && <img src={formData.imagePreview} alt="Preview" className="w-64 h-32 object-cover mb-2 rounded border border-gray-300" />}
+            <input type="file" accept="image/*" onChange={handleFileChange} className="w-full" />
+          </div>
+
+          {error && <div className="bg-gray-50 border border-gray-300 text-gray-700 px-4 py-3 rounded-md">{error}</div>}
+
+          {/* Buttons */}
+          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-300">
+            <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 border border-gray-400 rounded-md text-gray-700 bg-white hover:bg-gray-50">Отмена</button>
+            <button type="submit" disabled={loading} className="px-4 py-2 rounded-md text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50">{loading ? 'Сохранение...' : 'Сохранить'}</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default UpdateEventPage;
