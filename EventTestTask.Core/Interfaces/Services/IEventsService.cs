@@ -18,4 +18,7 @@ public interface IEventsService
     
     Task UploadEventImage(Guid eventId, byte[] image, CancellationToken cancellationToken);
     Task<byte[]> GetImageByEventId(Guid eventId, CancellationToken cancellationToken);
+    
+    Task<PageResult<Event>> GetEventsCreatedByUser(Guid userId, PageParams pageParams, CancellationToken cancellationToken);
+    Task<PageResult<Event>> GetEventsRegisteredByUser(Guid userId, PageParams pageParams, CancellationToken cancellationToken);
 }

@@ -21,6 +21,8 @@ public class EventsRepository : IEventsRepository
     {
         var events = await _context.Events
             .AsNoTracking()
+            .Include(e => e.Participants)
+            .ThenInclude(r => r.User)
             .AsQueryable()
             .ToPage(pageParams, cancellationToken);
         return events;
@@ -30,6 +32,8 @@ public class EventsRepository : IEventsRepository
     {
         var @event = await _context.Events
             .AsNoTracking()
+            .Include(e => e.Participants)
+            .ThenInclude(r => r.User)
             .FirstOrDefaultAsync(x => x.Id == eventId, cancellationToken);
         return @event;
     }
@@ -76,6 +80,8 @@ public class EventsRepository : IEventsRepository
     {
         var events = await _context.Events
             .AsNoTracking()
+            .Include(e => e.Participants)
+            .ThenInclude(r => r.User)
             .AsQueryable()
             .Filter(filter)
             .ToPage(pageParams, cancellationToken);
@@ -96,5 +102,43 @@ public class EventsRepository : IEventsRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == eventId, cancellationToken);
         return @event?.Image;
+    }
+    
+    public async Task<PageResult<Event>> GetEventsCreatedByUser(Guid userId, PageParams pageParams, CancellationToken ct)
+    {
+        var page = pageParams.Page ?? 1;
+        var pageSize = pageParams.PageSize ?? 10;
+        
+        var query = _context.Events
+            .Where(e => e.CreatorId == userId)
+            .Include(e => e.Participants)
+            .ThenInclude(r => r.User);
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return new PageResult<Event>(items, total, page, pageSize);
+    }
+
+    public async Task<PageResult<Event>> GetEventsRegisteredByUser(Guid userId, PageParams pageParams, CancellationToken ct)
+    {
+        var page = pageParams.Page ?? 1;
+        var pageSize = pageParams.PageSize ?? 10;
+        
+        var query = _context.Events
+            .Where(e => e.Participants.Any(p => p.UserId == userId))
+            .Include(e => e.Participants)
+            .ThenInclude(r => r.User);
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return new PageResult<Event>(items, total, page, pageSize);
     }
 }

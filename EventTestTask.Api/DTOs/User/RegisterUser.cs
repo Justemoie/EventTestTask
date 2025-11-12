@@ -1,3 +1,6 @@
+using EventTestTask.Application.Services;
+using Newtonsoft.Json;
+
 namespace EventTestTask.Api.DTOs.User;
 
 public record RegisterUser(
@@ -5,5 +8,5 @@ public record RegisterUser(
     string LastName,
     string Email,
     string Password,
-    DateTime BirthDate
+    [property: JsonConverter(typeof(IsoDateTimeConverter))] DateTime BirthDate
 );

@@ -43,6 +43,7 @@ public class UserRepositoryTests
         {
             new Event(
                 id: Guid.NewGuid(),
+                creatorId: Guid.NewGuid(),
                 title: "Event 1",
                 description: "Description 1",
                 startDate: DateTime.UtcNow,
@@ -54,6 +55,7 @@ public class UserRepositoryTests
             ),
             new Event(
                 id: Guid.NewGuid(),
+                creatorId: Guid.NewGuid(),
                 title: "Event 2",
                 description: "Description 2",
                 startDate: DateTime.UtcNow,

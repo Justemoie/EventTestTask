@@ -4,7 +4,7 @@ services:
       context: .. 
       dockerfile: EventTestTask.Api/Dockerfile
     ports:
-      - "8080:8080"
+      - "5001:8080"
     container_name: events_test_task
     depends_on:
       postgres:

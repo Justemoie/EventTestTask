@@ -30,7 +30,7 @@ public class UsersController : ControllerBase
         return Ok(userResponse);
     }
 
-    [HttpGet("/email")]
+    [HttpGet("email")]
     [Authorize]
     public async Task<ActionResult<UserResponse>> GetUserByEmail([FromQuery] string email,
         CancellationToken cancellationToken)
@@ -40,7 +40,7 @@ public class UsersController : ControllerBase
         return Ok(userResponse);
     }
 
-    [HttpPut("/update/{userId:guid}")]
+    [HttpPut("update/{userId:guid}")]
     [Authorize]
     public async Task<ActionResult> UpdateUser([FromRoute] Guid userId, [FromBody] UserRequest userRequest,
         CancellationToken cancellationToken)

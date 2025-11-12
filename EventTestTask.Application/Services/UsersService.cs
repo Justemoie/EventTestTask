@@ -57,7 +57,7 @@ public class UsersService : IUsersService
             Guid.NewGuid(),
             user.FirstName,
             user.LastName,
-            user.BirthDate,
+            DateTime.SpecifyKind(user.BirthDate, DateTimeKind.Utc),
             user.Email,
             hashedPassword,
             UserRole.User
@@ -71,7 +71,17 @@ public class UsersService : IUsersService
         await EnsureUserExists(userId, cancellationToken);
         await _userValidator.ValidateAndThrowAsync(user, cancellationToken);
 
-        await _usersRepository.UpdateUserAsync(userId, user, cancellationToken);
+        var newUser = new User(
+            user.Id,
+            user.FirstName,
+            user.LastName,
+            DateTime.SpecifyKind(user.BirthDate, DateTimeKind.Utc),
+            user.Email,
+            user.PasswordHash,
+            UserRole.User
+        );
+        
+        await _usersRepository.UpdateUserAsync(userId, newUser, cancellationToken);
     }
 
     public async Task<TokenResponse> Login(string email, string password, CancellationToken cancellationToken)

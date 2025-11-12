@@ -51,28 +51,31 @@ public class EventsController : ControllerBase
     }
 
     [HttpPost("create")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "User")]
     public async Task<IActionResult> CreateEvent([FromBody] EventRequest eventRequest,
         CancellationToken cancellationToken)
     {
         var @event = _mapper.Map<Event>(eventRequest);
+        @event.CreatorId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                                     ?? throw new UnauthorizedAccessException());
         await _eventsService.CreateEvent(@event, cancellationToken);
         return Ok();
     }
 
     [HttpPut("update/{eventId:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> UpdateEvent([FromRoute] Guid eventId,
         [FromBody] EventRequest eventRequest,
         CancellationToken cancellationToken)
     {
+        Console.WriteLine($"image: {eventRequest.Image}");
         var @event = _mapper.Map<Event>(eventRequest);
         await _eventsService.UpdateEvent(eventId, @event, cancellationToken);
         return Ok();
     }
 
     [HttpDelete("delete/{eventId:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<ActionResult<Guid>> DeleteEvent([FromRoute] Guid eventId, CancellationToken cancellationToken)
     {
         var id = await _eventsService.DeleteEvent(eventId, cancellationToken);
@@ -83,15 +86,22 @@ public class EventsController : ControllerBase
     public async Task<ActionResult<PageResult<EventResponse>>> SearchEvents(
         [FromQuery] PageParams pageParams,
         [FromQuery] EventFilter filter,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var events = await _eventsService.SearchEvents(pageParams, filter, cancellationToken);
-        var eventsResponse = _mapper.Map<PageResult<EventResponse>>(events);
-        return Ok(eventsResponse);
+        try
+        {
+            Console.WriteLine($"SearchEvents: page={pageParams.Page}, size={pageParams.PageSize}");
+            var result = await _eventsService.SearchEvents(pageParams, filter, ct);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("ERROR in SearchEvents: " + ex);
+            return StatusCode(500, new { Message = ex.Message });
+        }
     }
 
     [HttpGet("image/{eventId:guid}")]
-    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<byte[]>> GetImageByEventId([FromRoute] Guid eventId,
         CancellationToken cancellationToken)
     {
@@ -99,12 +109,55 @@ public class EventsController : ControllerBase
         return Ok(image);
     }
 
-    [HttpPatch("image-update/{eventId:guid}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UploadEventImage([FromRoute] Guid eventId, byte[] image,
+    [HttpPost("image-update/{eventId:guid}")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadEventImage(
+        [FromRoute] Guid eventId, 
+        [FromForm] IFormFile image,
         CancellationToken cancellationToken)
     {
-        await _eventsService.UploadEventImage(eventId, image, cancellationToken);
-        return Ok();
+        try
+        {
+            if (image == null || image.Length == 0)
+            {
+                return BadRequest("No image file provided");
+            }
+
+            using var memoryStream = new MemoryStream();
+            await image.CopyToAsync(memoryStream, cancellationToken);
+            var imageBytes = memoryStream.ToArray();
+
+            await _eventsService.UploadEventImage(eventId, imageBytes, cancellationToken);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    
+    [HttpGet("created-by/{userId:guid}")]
+    [Authorize]
+    public async Task<ActionResult<PageResult<EventResponse>>> GetEventsCreatedByUser(
+        [FromRoute] Guid userId,
+        [FromQuery] PageParams pageParams,
+        CancellationToken ct)
+    {
+        var events = await _eventsService.GetEventsCreatedByUser(userId, pageParams, ct);
+        var response = _mapper.Map<PageResult<EventResponse>>(events);
+        return Ok(response);
+    }
+
+    [HttpGet("registered-by/{userId:guid}")]
+    [Authorize]
+    public async Task<ActionResult<PageResult<EventResponse>>> GetEventsRegisteredByUser(
+        [FromRoute] Guid userId,
+        [FromQuery] PageParams pageParams,
+        CancellationToken ct)
+    {
+        var events = await _eventsService.GetEventsRegisteredByUser(userId, pageParams, ct);
+        var response = _mapper.Map<PageResult<EventResponse>>(events);
+        return Ok(response);
     }
 }

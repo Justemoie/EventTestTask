@@ -12,6 +12,7 @@ public class EventProfile : Profile
         CreateMap<EventRequest, Event>()
             .ConstructUsing(src => new Event(
                 Guid.NewGuid(),
+                Guid.Empty, // CreatorId будет установлен в контроллере
                 src.Title,
                 src.Description,
                 src.StartDate,
@@ -23,7 +24,8 @@ public class EventProfile : Profile
             .ForMember(dest => dest.Participants, opt => opt.Ignore());
 
         CreateMap<Event, EventRequest>();
-        CreateMap<EventResponse, Event>().ReverseMap();
+        CreateMap<Event, EventResponse>().ReverseMap();
+        CreateMap<EventResponse, Event>();
         CreateMap<PageResult<Event>, PageResult<EventResponse>>().ReverseMap();
     }
 }

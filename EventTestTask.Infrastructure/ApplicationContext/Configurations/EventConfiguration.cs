@@ -37,6 +37,9 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.Property(e => e.MaxParticipants)
             .IsRequired();
 
+        builder.Property(e => e.CreatorId)
+            .IsRequired();
+
         builder.HasMany(e => e.Participants)
             .WithOne(r => r.Event)
             .HasForeignKey(r => r.EventId)

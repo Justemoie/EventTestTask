@@ -4,30 +4,38 @@ namespace EventTestTask.Core.Entities;
 
 public class Event
 {
-    public Guid Id { get; private set; }
+    public Guid Id { get; set; }
+    
+    public Guid CreatorId { get; set; }
 
-    public string Title { get; private set; }
+    public string Title { get; set; }
 
-    public string Description { get; private set; }
+    public string Description { get; set; }
 
-    public DateTime StartDate { get; private set; }
+    public DateTime StartDate { get; set; }
 
-    public DateTime EndDate { get; private set; }
+    public DateTime EndDate { get; set; }
 
-    public string Location { get; private set; }
+    public string Location { get; set; }
 
-    public EventCategory Category { get; private set; }
+    public EventCategory Category { get; set; }
 
-    public int MaxParticipants { get; private set; }
+    public int MaxParticipants { get; set; }
 
-    public IList<Registration> Participants { get; private set; } = new List<Registration>();
+    public IList<Registration> Participants { get; set; } = new List<Registration>();
 
-    public byte[]? Image { get; private set; }
+    public byte[]? Image { get; set; }
 
-    public Event(Guid id, string title, string description, DateTime startDate, DateTime endDate, string location,
+    public Event()
+    {
+        
+    }
+    
+    public Event(Guid id, Guid creatorId, string title, string description, DateTime startDate, DateTime endDate, string location,
         EventCategory category, int maxParticipants, byte[]? image)
     {
         Id = id;
+        CreatorId = creatorId;
         Title = title;
         Description = description;
         StartDate = startDate;

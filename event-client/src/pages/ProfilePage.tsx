@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { User, UpdateUserRequest } from '../types';
-import { Calendar, User as UserIcon, LogOut, Edit, Music, Code, ChefHat } from 'lucide-react';
+import { User, UpdateUserRequest, Event, PageParams } from '../types';
+import { apiService } from '../services/api';
+import { Calendar, User as UserIcon, LogOut, Edit, Users, CheckCircle, TrendingUp } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
     const { user, logout, updateUser, isAuthenticated } = useAuth();
@@ -9,6 +10,9 @@ const ProfilePage: React.FC = () => {
     const [editData, setEditData] = useState<Partial<User>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>('');
+    const [registeredEvents, setRegisteredEvents] = useState<Event[]>([]);
+    const [createdEvents, setCreatedEvents] = useState<Event[]>([]);
+    const [statsLoading, setStatsLoading] = useState(true);
 
     useEffect(() => {
         if (user) {
@@ -18,8 +22,85 @@ const ProfilePage: React.FC = () => {
                 email: user.email,
                 birthDate: user.birthDate
             });
+            loadUserStats();
         }
     }, [user]);
+
+    const loadUserStats = async () => {
+        if (!user) return;
+
+        try {
+            setStatsLoading(true);
+            const pageParams: PageParams = { page: 1, pageSize: 50 };
+
+            // Загружаем созданные события
+            const createdResult = await apiService.getMyCreatedEvents(user.id, pageParams);
+            const createdEventsList = getEventsFromResponse(createdResult);
+            setCreatedEvents(createdEventsList);
+
+            // Загружаем зарегистрированные события
+            const registeredResult = await apiService.getMyRegisteredEvents(user.id, pageParams);
+            const registeredEventsList = getEventsFromResponse(registeredResult);
+            setRegisteredEvents(registeredEventsList);
+
+        } catch (err) {
+            console.error('Error loading user stats:', err);
+        } finally {
+            setStatsLoading(false);
+        }
+    };
+
+    const getEventsFromResponse = (result: any): Event[] => {
+        if (result && typeof result === 'object') {
+            if (Array.isArray((result as any).$values)) {
+                return (result as any).$values;
+            } else if (Array.isArray((result as any).data)) {
+                return (result as any).data;
+            } else if (Array.isArray(result)) {
+                return result;
+            } else if ((result as any).data?.$values) {
+                return (result as any).data.$values;
+            }
+        }
+        return [];
+    };
+
+    // Статистика
+    const calculateStats = () => {
+        const now = new Date();
+        
+        // Количество созданных событий
+        const createdCount = createdEvents.length;
+        
+        // Количество зарегистрированных событий
+        const registeredCount = registeredEvents.length;
+        
+        // Общее количество участников в созданных событиях
+        const totalParticipants = createdEvents.reduce((total, event) => 
+            total + (event.participants?.length || 0), 0
+        );
+        
+        // Количество завершенных созданных событий
+        const completedCreatedEvents = createdEvents.filter(event => 
+            new Date(event.endDate) < now
+        ).length;
+        
+        // Количество завершенных зарегистрированных событий
+        const completedRegisteredEvents = registeredEvents.filter(event => 
+            new Date(event.endDate) < now
+        ).length;
+
+        return {
+            createdEvents: createdCount,
+            registeredEvents: registeredCount,
+            totalParticipants,
+            completedCreatedEvents,
+            completedRegisteredEvents,
+            completionRate: createdCount > 0 ? Math.round((completedCreatedEvents / createdCount) * 100) : 0
+        };
+    };
+
+    const stats = calculateStats();
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -32,22 +113,21 @@ const ProfilePage: React.FC = () => {
         setError('');
       
         try {
-          // Преобразуем Partial в Required, подставляя значения по умолчанию
-          const updateData: UpdateUserRequest = {
-            firstName: editData.firstName || user.firstName || '',
-            lastName: editData.lastName || user.lastName || '',
-            email: editData.email || user.email || '',
-            birthDate: editData.birthDate || user.birthDate || ''
-          };
-          
-          await updateUser(updateData);
-          setIsEditing(false);
+            const updateData: UpdateUserRequest = {
+                firstName: editData.firstName || user.firstName || '',
+                lastName: editData.lastName || user.lastName || '',
+                email: editData.email || user.email || '',
+                birthDate: editData.birthDate || user.birthDate || ''
+            };
+            
+            await updateUser(updateData);
+            setIsEditing(false);
         } catch (err: any) {
-          setError(err.response?.data?.message || 'Ошибка обновления профиля');
+            setError(err.response?.data?.message || 'Ошибка обновления профиля');
         } finally {
-          setLoading(false);
+            setLoading(false);
         }
-      };
+    };
 
     const handleCancel = () => {
         setEditData({
@@ -76,6 +156,24 @@ const ProfilePage: React.FC = () => {
         }
     };
 
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
+    const getEventStatus = (event: Event) => {
+        const now = new Date();
+        const start = new Date(event.startDate);
+        const end = new Date(event.endDate);
+
+        if (now < start) return { text: 'Ожидает', color: 'bg-gray-200 text-gray-900' };
+        if (now >= start && now <= end) return { text: 'Идёт', color: 'bg-gray-100 text-gray-800' };
+        return { text: 'Завершено', color: 'bg-gray-100 text-gray-800' };
+    };
+
     if (!isAuthenticated || !user) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -87,49 +185,12 @@ const ProfilePage: React.FC = () => {
         );
     }
 
-    // Mock data for demonstration
-    const mockStats = {
-        createdEvents: 12,
-        attendedEvents: 28,
-        totalParticipants: 156,
-        averageRating: 4.8,
-        successRate: 89
-    };
-
-    const mockRecentEvents = [
-        {
-            id: '1',
-            title: 'Джазовый вечер',
-            type: 'created',
-            date: '18 января 2025',
-            status: 'Завершено',
-            icon: Music
-        },
-        {
-            id: '2',
-            title: 'ІТ-конференция 2025',
-            type: 'attended',
-            date: '15 января 2025',
-            status: 'Активно',
-            icon: Code
-        },
-        {
-            id: '3',
-            title: 'Кулинарный мастер-класс',
-            type: 'created',
-            date: '12 января 2025',
-            status: 'Запланировано',
-            icon: ChefHat
-        }
-    ];
-
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Профиль пользователя</h1>
-                    <p className="text-gray-600">Управляйте своим аккаунтом и просматривайте активность</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -233,13 +294,9 @@ const ProfilePage: React.FC = () => {
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Информация аккаунта</h3>
                             <div className="space-y-3">
                                 <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Дата регистрации:</span>
+                                    <span className="text-sm text-gray-600">Дата рождения:</span>
                                     <span className="text-sm font-medium text-gray-900">
-                                        {new Date(user.birthDate).toLocaleDateString('ru-RU', {
-                                            day: 'numeric',
-                                            month: 'long',
-                                            year: 'numeric'
-                                        })}
+                                        {formatDate(user.birthDate)}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
@@ -247,8 +304,8 @@ const ProfilePage: React.FC = () => {
                                     <span className="text-sm font-medium text-gray-900">Активный</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Уровень:</span>
-                                    <span className="text-sm font-medium text-gray-900">Организатор</span>
+                                    <span className="text-sm text-gray-600">Роль:</span>
+                                    <span className="text-sm font-medium text-gray-900 capitalize">{user.role || 'User'}</span>
                                 </div>
                             </div>
                         </div>
@@ -259,67 +316,158 @@ const ProfilePage: React.FC = () => {
                         {/* My Activity */}
                         <div className="bg-white rounded-lg border border-gray-300 p-6">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Моя активность</h3>
-                            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                                <div className="text-center">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                                        <Calendar className="h-6 w-6 text-gray-600" />
+                            {statsLoading ? (
+                                <div className="text-center py-8">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                                    <p className="mt-2 text-gray-600">Загрузка статистики...</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                                    <div className="text-center">
+                                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                            <Calendar className="h-6 w-6 text-blue-600" />
+                                        </div>
+                                        <div className="text-2xl font-bold text-gray-900">{stats.createdEvents}</div>
+                                        <div className="text-sm text-gray-600">Созданных событий</div>
                                     </div>
-                                    <div className="text-2xl font-bold text-gray-900">{mockStats.createdEvents}</div>
-                                    <div className="text-sm text-gray-600">Созданных событий</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                                        <Calendar className="h-6 w-6 text-gray-600" />
+                                    <div className="text-center">
+                                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                            <Users className="h-6 w-6 text-green-600" />
+                                        </div>
+                                        <div className="text-2xl font-bold text-gray-900">{stats.registeredEvents}</div>
+                                        <div className="text-sm text-gray-600">Участий в событиях</div>
                                     </div>
-                                    <div className="text-2xl font-bold text-gray-900">{mockStats.attendedEvents}</div>
-                                    <div className="text-sm text-gray-600">Посещенных событий</div>
+                                    <div className="text-center">
+                                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                            <Users className="h-6 w-6 text-purple-600" />
+                                        </div>
+                                        <div className="text-2xl font-bold text-gray-900">{stats.totalParticipants}</div>
+                                        <div className="text-sm text-gray-600">Участников в моих событиях</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                            <CheckCircle className="h-6 w-6 text-orange-600" />
+                                        </div>
+                                        <div className="text-2xl font-bold text-gray-900">{stats.completedCreatedEvents}</div>
+                                        <div className="text-sm text-gray-600">Завершенных событий</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                            <TrendingUp className="h-6 w-6 text-teal-600" />
+                                        </div>
+                                        <div className="text-2xl font-bold text-gray-900">{stats.completionRate}%</div>
+                                        <div className="text-sm text-gray-600">Завершено событий</div>
+                                    </div>
                                 </div>
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-gray-900">{mockStats.totalParticipants}</div>
-                                    <div className="text-sm text-gray-600">Всего участников</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-gray-900">{mockStats.averageRating}</div>
-                                    <div className="text-sm text-gray-600">Средний рейтинг</div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-gray-900">{mockStats.successRate}%</div>
-                                    <div className="text-sm text-gray-600">Успешность</div>
-                                </div>
-                            </div>
+                            )}
                         </div>
 
-                        {/* Recent Events */}
+                        {/* Registered Events */}
                         <div className="bg-white rounded-lg border border-gray-300 p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Недавние события</h3>
-                            <div className="space-y-4">
-                                {mockRecentEvents.map((event) => {
-                                    const IconComponent = event.icon;
-                                    return (
-                                        <div key={event.id} className="flex items-center justify-between py-3 border-b border-gray-300 last:border-b-0">
-                                            <div className="flex items-center">
-                                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-                                                    <IconComponent className="h-4 w-4 text-gray-600" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm font-medium text-gray-900">{event.title}</div>
-                                                    <div className="text-sm text-gray-500">
-                                                        {event.type === 'created' ? 'Создано' : 'Участвовал'} • {event.date}
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                Мои записи на мероприятия ({registeredEvents.length})
+                            </h3>
+                            {statsLoading ? (
+                                <div className="text-center py-8">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                                    <p className="mt-2 text-gray-600">Загрузка мероприятий...</p>
+                                </div>
+                            ) : registeredEvents.length === 0 ? (
+                                <div className="text-center py-8 text-gray-500">
+                                    <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                                    <p>Вы еще не записались ни на одно мероприятие</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {registeredEvents.slice(0, 5).map((event) => {
+                                        const status = getEventStatus(event);
+                                        return (
+                                            <div key={event.id} className="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0">
+                                                <div className="flex items-center flex-1 min-w-0">
+                                                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                                                        <Calendar className="h-5 w-5 text-gray-600" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-sm font-medium text-gray-900 truncate">
+                                                            {event.title}
+                                                        </div>
+                                                        <div className="text-sm text-gray-500">
+                                                            {formatDate(event.startDate)} • {event.location}
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color} ml-3 flex-shrink-0`}>
+                                                    {status.text}
+                                                </span>
                                             </div>
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300`}>
-                                                {event.status}
-                                            </span>
+                                        );
+                                    })}
+                                    {registeredEvents.length > 5 && (
+                                        <div className="mt-4 text-center">
+                                            <button className="text-sm text-gray-900 hover:text-gray-700 font-medium">
+                                                Показать все {registeredEvents.length} записей
+                                            </button>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                            <div className="mt-4">
-                                <button className="text-sm text-gray-900 hover:text-gray-700 font-medium">
-                                    Показать все события
-                                </button>
-                            </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Created Events */}
+                        <div className="bg-white rounded-lg border border-gray-300 p-6">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                Мои созданные мероприятия ({createdEvents.length})
+                            </h3>
+                            {statsLoading ? (
+                                <div className="text-center py-8">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                                    <p className="mt-2 text-gray-600">Загрузка мероприятий...</p>
+                                </div>
+                            ) : createdEvents.length === 0 ? (
+                                <div className="text-center py-8 text-gray-500">
+                                    <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                                    <p>Вы еще не создали ни одного мероприятия</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {createdEvents.slice(0, 5).map((event) => {
+                                        const status = getEventStatus(event);
+                                        const participantsCount = event.participants?.length || 0;
+                                        return (
+                                            <div key={event.id} className="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0">
+                                                <div className="flex items-center flex-1 min-w-0">
+                                                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                                                        <Calendar className="h-5 w-5 text-gray-600" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-sm font-medium text-gray-900 truncate">
+                                                            {event.title}
+                                                        </div>
+                                                        <div className="text-sm text-gray-500">
+                                                            {formatDate(event.startDate)} • {participantsCount} участников
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                                                    <span className="text-xs text-gray-500">
+                                                        {participantsCount}/{event.maxParticipants > 0 ? event.maxParticipants : '∞'}
+                                                    </span>
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
+                                                        {status.text}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {createdEvents.length > 5 && (
+                                        <div className="mt-4 text-center">
+                                            <button className="text-sm text-gray-900 hover:text-gray-700 font-medium">
+                                                Показать все {createdEvents.length} мероприятий
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

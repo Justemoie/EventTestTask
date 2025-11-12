@@ -80,6 +80,8 @@ public class GlobalExceptionHandlerMiddleware(
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Unhandled exception occurred: {Message}", ex.Message);
+
             logger.LogError(ex, "Unhandled exception");
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             context.Response.ContentType = "application/json";

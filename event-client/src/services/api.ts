@@ -242,6 +242,35 @@ async searchEvents(pageParams: PageParams, filter: EventFilter): Promise<PageRes
         const response = await this.api.get(`/events/registered-by/${userId}`, { params: pageParams });
         return response.data;
     }
+
+    // В apiService добавьте методы
+async getEventParticipantsCount(eventId: string): Promise<number> {
+    try {
+        const participants = await this.getEventParticipants(eventId, { page: 1, pageSize: 1000 });
+        return participants.length;
+    } catch (error) {
+        console.error('Error getting participants count:', error);
+        return 0;
+    }
+}
+
+async getEventsWithParticipants(userId: string): Promise<Event[]> {
+    const pageParams = { page: 1, pageSize: 50 };
+    const createdEvents = await this.getMyCreatedEvents(userId, pageParams);
+    
+    // Для каждого события получаем количество участников
+    const eventsWithParticipants = await Promise.all(
+        createdEvents.data.map(async (event: Event) => {
+            const participantsCount = await this.getEventParticipantsCount(event.id);
+            return {
+                ...event,
+                participantsCount: participantsCount
+            };
+        })
+    );
+    
+    return eventsWithParticipants;
+}
 }
 
 export const apiService = new ApiService();

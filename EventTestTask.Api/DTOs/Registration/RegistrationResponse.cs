@@ -1,8 +1,11 @@
+using EventTestTask.Application.Services;
+using Newtonsoft.Json;
+
 namespace EventTestTask.Api.DTOs.Registration;
 
 public record RegistrationResponse(
     Guid Id,
     Guid UserId,
     Guid EventId,
-    DateTime RegistrationDate
+    [property: JsonConverter(typeof(IsoDateTimeConverter))] DateTime RegistrationDate
 );

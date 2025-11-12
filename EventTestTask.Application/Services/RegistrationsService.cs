@@ -57,7 +57,7 @@ public class RegistrationsService : IRegistrationsService
         return await _registrationsRepository.GetParticipantByIdAsync(eventId, userId, cancellationToken);
     }
 
-    private async Task CheckUserAndEventExists(Guid eventId, Guid userId, CancellationToken cancellationToken)
+    private async Task CheckUserAndEventExists(Guid userId, Guid eventId, CancellationToken cancellationToken)
     {
         var @event = await _eventsRepository.GetEventByIdAsync(eventId, cancellationToken);
         var user = await _usersRepository.GetUserByIdAsync(userId, cancellationToken);

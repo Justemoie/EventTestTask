@@ -8,6 +8,7 @@ interface EventCardProps {
     onDelete?: (event: Event) => void;
     onJoin?: (event: Event) => void;
     showActions?: boolean;
+    formatDateTime?: (dateString: string) => string; 
 }
 
 const EventCard: React.FC<EventCardProps> = ({
