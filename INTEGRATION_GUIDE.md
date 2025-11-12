@@ -6,7 +6,7 @@
 
 ```bash
 # Перейдите в корневую папку проекта
-cd /Users/ivankuzmenko/Desktop/Rider/EventTestTask
+cd ../EventTestTask
 
 # Запустите Docker Compose
 docker-compose -f docker-compose.yml up -d --build
@@ -66,7 +66,7 @@ React приложение будет доступно по адресу: `http:
 
 ## Возможные проблемы и решения
 
-### 1. CORS ошибки ✅ ИСПРАВЛЕНО
+### 1. CORS ошибки
 CORS настроен в `Program.cs` для работы с `http://localhost:3000`:
 ```csharp
 app.UseCors(policy => policy
@@ -80,13 +80,6 @@ app.UseCors(policy => policy
 Если возникают проблемы с HTTPS, измените в `src/services/api.ts`:
 ```typescript
 baseURL: 'http://localhost:5001/api', // Используйте HTTP вместо HTTPS
-```
-
-### 3. База данных не инициализирована
-Запустите миграции:
-```bash
-# В папке EventTestTask.Api
-dotnet ef database update
 ```
 
 ## Структура данных
