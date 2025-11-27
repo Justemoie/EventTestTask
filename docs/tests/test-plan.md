@@ -19,11 +19,11 @@
 
 ## Introduction
 
-This document outlines the testing plan for the "EventTestTask" application. It is intended for individuals responsible for testing this project. The goal of the testing is to verify whether the actual behavior of the application aligns with its expected behavior as described in the requirements.
+Этот документ описывает план тестирования для приложения "EventTestTask". Он предназначен для лиц, ответственных за тестирование этого проекта. Цель тестирования - проверить, соответствует ли фактическое поведение приложения ожидаемому поведению, описанному в требованиях.
 
 ## Test Items
 
-The following functional requirements are identified as test items:
+Следующие функциональные требования определены в качестве элементов испытания:
 
 - User registration
 - User authentication
@@ -37,69 +37,69 @@ The following functional requirements are identified as test items:
 ## Quality Attributes
 
 1. **Functionality**:
-    - Functional Completeness: The application should perform all declared functions
-    - Functional Accuracy: The application should perform all declared functions correctly
+    - Функциональная полнота: приложение должно выполнять все объявленные функции
+    - Функциональная точность: приложение должно выполнять все объявленные функции правильно
 
 2. **Reliability**:
-    - Handling of invalid data
-    - Resilience to error scenarios
+    - Обработка недействительных данных
+    - Устойчивость к сценариям ошибок
 
 3. **Security**:
-    - Secure password storage
-    - Proper JWT tokens handling
+    - Безопасное хранение паролей
+    - Правильная обработка токенов JWT
 
 ## Risks
 
-The following risks are identified:
-- Database connection failures
-- User data validation issues
-- JWT tokens generation errors
-- Password hashing problems
+Выявлены следующие риски:
+- Отказ подключения к базе данных
+- Проблемы проверки данных пользователей
+- Ошибки генерации жетонов JWT
+- Проблемы хеширования паролей
 
 ## Testing Aspects
 
-The testing will focus on verifying the implementation of the application's core functions. Aspects to be tested include:
+Тестирование будет сосредоточено на проверке выполнения основных функций приложения. Испытуемые аспекты включают:
 
 ### User Registration
-Testing must ensure:
-- Successful user registration with valid data
-- Proper error handling for invalid data
-- Correct password hashing
-- Validation of all required fields
+Тестирование должно гарантировать:
+- Успешная регистрация пользователя с действительными данными
+- Правильная обработка ошибок для неверных данных
+- Правильное хэширование пароля
+- Подтверждение всех требуемых полей
 
 ### User Authentication
-Testing must ensure:
-- Successful login with correct credentials
-- Proper handling of incorrect passwords
-- Proper handling of non-existent emails
+Тестирование должно гарантировать:
+- Успешный вход с правильными учетными данными
+- Правильная обработка неправильных паролей
+- Надлежащая обработка несуществующих писем
 - JWT tokens generation
-- Tokens storage in cookies
+- Хранение токсинов в cookie
 
 ### User Logout
-Testing must ensure:
-- Proper tokens removal
-- Refresh token invalidation
-- Cookies cleanup
+Тестирование должно гарантировать:
+- Надлежащее удаление жетонов
+- Обновить опровержение маркера
+- Очистка печенья
 
 ### Repository Operations
-Testing must ensure:
-- User creation in database
-- User retrieval by ID
-- User retrieval by email
-- Loading of related data (events)
+Тестирование должно гарантировать:
+- Создание пользователя в базе данных
+- Поиск пользователя по идентификатору
+- Поиск пользователя по электронной почте
+- Загрузка связанных данных (события)
 
 ## Testing Approaches
 
-A combined approach will be used:
-- Unit testing of services
-- Integration testing of repositories
-- Mocking dependencies with Moq
-- Using InMemory database for repository testing
+Будет использоваться комбинированный подход:
+- Единичное тестирование услуг
+- Интеграционное тестирование репозиторий
+- использование Moq объектов
+- Использование базы данных InMemory для тестирования хранилища
 
 ## Results Representation
 
-Results will be documented in the "Testing Results" report.
+Результаты будут задокументированы в отчете "Результаты тестирования"
 
 ## Conclusions
 
-This testing plan enables the verification of the core functionality of the application. While passing all tests does not guarantee full compatibility across all platform versions and architectures, it provides confidence that the software performs as intended.
+Этот план тестирования позволяет проверять основные функции приложения. Хотя прохождение всех тестов не гарантирует полную совместимость во всех версиях платформы и архитектурах, это обеспечивает уверенность в том, что программное обеспечение работает так, как оно должно.
