@@ -100,7 +100,7 @@
 
 | Component | Coverage |
 |-----------|----------|
-| User Service | 95% |
+| User Service | 60% |
 | User Repository | 90% |
 
 ## Quality Metrics
